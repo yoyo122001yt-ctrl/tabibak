@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tabibak - Doctor Login</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0ea5e9, #0284c7);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .login-box {
+            background: white;
+            border-radius: 20px;
+            padding: 50px 40px;
+            width: 400px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+        .logo { font-size: 28px; font-weight: bold; color: #0ea5e9; margin-bottom: 5px; }
+        .subtitle { color: #999; margin-bottom: 30px; font-size: 15px; }
+        .input-group { margin-bottom: 20px; text-align: left; }
+        .input-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #333; }
+        .input-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 16px;
+            outline: none;
+            transition: border 0.2s;
+        }
+        .input-group input:focus { border-color: #0ea5e9; }
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            background: #0ea5e9;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .login-btn:hover { background: #0284c7; }
+        .error {
+            background: #fee2e2;
+            color: #dc2626;
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        .back { margin-top: 20px; }
+        .back a { color: #0ea5e9; text-decoration: none; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="login-box">
+        <div class="logo">Tabibak طبيبك</div>
+        <div class="subtitle">Doctor Portal — Sign in to manage your clinic</div>
+
+        {% if error %}
+        <div class="error">❌ {{ error }}</div>
+        {% endif %}
+
+        <form method="POST" action="/doctor/login">
+            <div class="input-group">
+                <label>Email</label>
+                <input type="email" name="email" placeholder="your@email.com" required>
+            </div>
+            <div class="input-group">
+                <label>Password</label>
+                <input type="password" name="password" placeholder="••••••••" required>
+            </div>
+            <button type="submit" class="login-btn">Login →</button>
+        </form>
+
+        <div class="back">
+            <a href="/">← Back to Tabibak</a>
+        </div>
+    </div>
+</body>
+</html>

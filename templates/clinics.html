@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tabibak - Find a Doctor</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f9ff; color: #333; }
+
+        nav {
+            background: white;
+            padding: 15px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .logo { font-size: 24px; font-weight: bold; color: #0ea5e9; }
+
+        .hero {
+            background: linear-gradient(135deg, #0ea5e9, #0284c7);
+            color: white;
+            padding: 50px 40px;
+            text-align: center;
+        }
+        .hero h1 { font-size: 36px; margin-bottom: 10px; }
+        .hero p { font-size: 18px; opacity: 0.9; }
+
+        .clinics-container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .clinic-card {
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .clinic-info h2 { font-size: 22px; color: #0284c7; margin-bottom: 5px; }
+        .clinic-info p { color: #666; margin-bottom: 3px; }
+
+        .clinic-status { text-align: center; }
+
+        .status-open {
+            background: #dcfce7;
+            color: #16a34a;
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            display: inline-block;
+        }
+        .status-closed {
+            background: #fee2e2;
+            color: #dc2626;
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            display: inline-block;
+        }
+
+        .wait-time {
+            font-size: 28px;
+            font-weight: bold;
+            color: #0ea5e9;
+        }
+        .wait-label { font-size: 13px; color: #999; }
+
+        .book-btn {
+            background: #0ea5e9;
+            color: white;
+            padding: 10px 25px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: bold;
+            display: inline-block;
+            margin-top: 10px;
+        }
+        .book-btn:hover { background: #0284c7; }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #999;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="logo">Tabibak طبيبك</div>
+        <a href="/" style="color: #0ea5e9; text-decoration: none;">← Back to Home</a>
+    </nav>
+
+    <div class="hero">
+        <h1>🏥 Available Doctors Near You</h1>
+        <p>Real-time wait times updated automatically</p>
+    </div>
+
+    <div class="clinics-container">
+        {% for clinic in clinics %}
+        <div class="clinic-card">
+            <div class="clinic-info">
+                <h2>{{ clinic[1] }}</h2>
+                <p>👨‍⚕️ {{ clinic[2] }}</p>
+                <p>🩺 {{ clinic[3] }}</p>
+                <p>👥 {{ clinic[4] }} patients waiting</p>
+            </div>
+            <div class="clinic-status">
+                {% if clinic[6] == 1 %}
+                    <div class="status-open">🟢 Open</div>
+                {% else %}
+                    <div class="status-closed">🔴 Closed</div>
+                {% endif %}
+                <div class="wait-time">{{ clinic[4] * clinic[5] }} min</div>
+                <div class="wait-label">estimated wait</div>
+                {% if clinic[6] == 1 %}
+                    <a href="#" class="book-btn">Book Now</a>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <footer>© 2026 Tabibak طبيبك</footer>
+
+</body>
+</html>
