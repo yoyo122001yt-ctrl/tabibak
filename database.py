@@ -1,9 +1,10 @@
 import sqlite3
+import os
 
 conn = sqlite3.connect("tabibak.db")
 cursor = conn.cursor()
 
-# Create clinics table
+# Clinics table
 cursor.execute("""
     CREATE TABLE IF NOT EXISTS clinics (
         id INTEGER PRIMARY KEY,
@@ -16,7 +17,7 @@ cursor.execute("""
     )
 """)
 
-# Create doctors table
+# Doctors table
 cursor.execute("""
     CREATE TABLE IF NOT EXISTS doctors (
         id INTEGER PRIMARY KEY,
@@ -28,20 +29,47 @@ cursor.execute("""
     )
 """)
 
-# Clear old data
+# Patients table
+cursor.execute("""
+    CREATE TABLE IF NOT EXISTS patients (
+        id INTEGER PRIMARY KEY,
+        name TEXT,
+        email TEXT,
+        password TEXT,
+        age INTEGER,
+        blood_type TEXT,
+        phone TEXT
+    )
+""")
+
+# Medical documents table
+cursor.execute("""
+    CREATE TABLE IF NOT EXISTS medical_documents (
+        id INTEGER PRIMARY KEY,
+        patient_id INTEGER,
+        filename TEXT,
+        description TEXT,
+        uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+""")
+
+# Clear and re-add clinics and doctors
 cursor.execute("DELETE FROM clinics")
 cursor.execute("DELETE FROM doctors")
 
-# Add clinics
 cursor.execute("INSERT INTO clinics VALUES (1, 'Clinic Youssef', 'Dr. Ahmed', 'General', 3, 15, 1)")
 cursor.execute("INSERT INTO clinics VALUES (2, 'Nile Medical', 'Dr. Sara', 'Cardiology', 6, 20, 1)")
 cursor.execute("INSERT INTO clinics VALUES (3, 'October Clinic', 'Dr. Mona', 'Pediatrics', 2, 10, 0)")
 
-# Add doctors
 cursor.execute("INSERT INTO doctors VALUES (1, 'Dr. Ahmed', 'ahmed@tabibak.com', 'ahmed123', 1, 0)")
 cursor.execute("INSERT INTO doctors VALUES (2, 'Dr. Sara', 'sara@tabibak.com', 'sara123', 2, 0)")
 cursor.execute("INSERT INTO doctors VALUES (3, 'Dr. Mona', 'mona@tabibak.com', 'mona123', 3, 0)")
 
 conn.commit()
-print("✅ Database updated with doctors!")
+print("✅ Database updated with patients and documents tables!")
+
+# Create uploads folder
+os.makedirs("static/uploads", exist_ok=True)
+print("✅ Uploads folder created!")
+
 conn.close()

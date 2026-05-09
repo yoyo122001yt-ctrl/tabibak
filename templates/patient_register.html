@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tabibak - Patient Register</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0ea5e9, #0284c7);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .register-box {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            width: 500px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+        }
+        .logo { font-size: 24px; font-weight: bold; color: #0ea5e9; margin-bottom: 5px; text-align: center; }
+        .subtitle { color: #999; margin-bottom: 30px; font-size: 15px; text-align: center; }
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; margin-bottom: 6px; font-weight: 600; color: #333; font-size: 14px; }
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 10px 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 15px;
+            outline: none;
+            transition: border 0.2s;
+        }
+        .input-group input:focus, .input-group select:focus { border-color: #0ea5e9; }
+        .row { display: flex; gap: 15px; }
+        .row .input-group { flex: 1; }
+        .register-btn {
+            width: 100%;
+            padding: 12px;
+            background: #0ea5e9;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 17px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .register-btn:hover { background: #0284c7; }
+        .error {
+            background: #fee2e2;
+            color: #dc2626;
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+        .login-link { text-align: center; margin-top: 15px; font-size: 14px; color: #666; }
+        .login-link a { color: #0ea5e9; text-decoration: none; font-weight: 600; }
+    </style>
+</head>
+<body>
+    <div class="register-box">
+        <div class="logo">Tabibak طبيبك</div>
+        <div class="subtitle">Create your patient account</div>
+
+        {% if error %}
+        <div class="error">❌ {{ error }}</div>
+        {% endif %}
+
+        <form method="POST" action="/patient/register">
+            <div class="input-group">
+                <label>Full Name</label>
+                <input type="text" name="name" placeholder="Your full name" required>
+            </div>
+            <div class="row">
+                <div class="input-group">
+                    <label>Age</label>
+                    <input type="number" name="age" placeholder="Your age" required>
+                </div>
+                <div class="input-group">
+                    <label>Blood Type</label>
+                    <select name="blood_type">
+                        <option>A+</option>
+                        <option>A-</option>
+                        <option>B+</option>
+                        <option>B-</option>
+                        <option>AB+</option>
+                        <option>AB-</option>
+                        <option>O+</option>
+                        <option>O-</option>
+                    </select>
+                </div>
+            </div>
+            <div class="input-group">
+                <label>Phone Number</label>
+                <input type="text" name="phone" placeholder="01xxxxxxxxx" required>
+            </div>
+            <div class="input-group">
+                <label>Email</label>
+                <input type="email" name="email" placeholder="your@email.com" required>
+            </div>
+            <div class="input-group">
+                <label>Password</label>
+                <input type="password" name="password" placeholder="••••••••" required>
+            </div>
+            <button type="submit" class="register-btn">Create Account →</button>
+        </form>
+
+        <div class="login-link">
+            Already have an account? <a href="/patient/login">Login here</a>
+        </div>
+        <div class="login-link" style="margin-top:8px;">
+            <a href="/">← Back to Tabibak</a>
+        </div>
+    </div>
+</body>
+</html>
