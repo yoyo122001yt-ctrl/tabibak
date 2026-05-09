@@ -19,12 +19,26 @@
             position: sticky;
             top: 0;
             z-index: 100;
+            flex-wrap: wrap;
+            gap: 10px;
         }
         .logo { font-size: 24px; font-weight: bold; color: #0ea5e9; }
         .logo span { color: #333; }
-        nav ul { list-style: none; display: flex; gap: 30px; }
-        nav ul a { text-decoration: none; color: #333; font-weight: 500; }
+        nav ul { list-style: none; display: flex; gap: 20px; flex-wrap: wrap; }
+        nav ul a { text-decoration: none; color: #333; font-weight: 500; font-size: 14px; }
         nav ul a:hover { color: #0ea5e9; }
+        .nav-btns { display: flex; gap: 10px; }
+        .nav-btn {
+            padding: 8px 18px;
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: bold;
+            text-decoration: none;
+            transition: transform 0.2s;
+        }
+        .nav-btn:hover { transform: scale(1.05); }
+        .nav-btn-outline { border: 2px solid #0ea5e9; color: #0ea5e9; }
+        .nav-btn-filled { background: #0ea5e9; color: white; }
 
         /* HERO */
         .hero {
@@ -36,6 +50,7 @@
         .hero h1 { font-size: 52px; margin-bottom: 20px; }
         .hero h1 span { color: #bae6fd; }
         .hero p { font-size: 20px; margin-bottom: 40px; opacity: 0.9; max-width: 600px; margin-left: auto; margin-right: auto; }
+        .hero-btns { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; }
         .btn {
             background: white;
             color: #0ea5e9;
@@ -48,6 +63,75 @@
             transition: transform 0.2s;
         }
         .btn:hover { transform: scale(1.05); }
+        .btn-outline {
+            background: transparent;
+            color: white;
+            border: 2px solid white;
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-size: 18px;
+            font-weight: bold;
+            text-decoration: none;
+            display: inline-block;
+            transition: transform 0.2s;
+        }
+        .btn-outline:hover { transform: scale(1.05); background: rgba(255,255,255,0.1); }
+
+        /* PORTAL SECTION */
+        .portal {
+            padding: 80px 40px;
+            text-align: center;
+            background: white;
+        }
+        .portal h2 { font-size: 36px; margin-bottom: 10px; }
+        .portal .subtitle { color: #777; margin-bottom: 50px; font-size: 18px; }
+        .portal-cards {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+        .portal-card {
+            border-radius: 20px;
+            padding: 40px;
+            width: 280px;
+            transition: transform 0.2s;
+        }
+        .portal-card:hover { transform: translateY(-5px); }
+        .portal-card .icon { font-size: 50px; margin-bottom: 15px; }
+        .portal-card h3 { font-size: 22px; margin-bottom: 10px; }
+        .portal-card p { color: #666; margin-bottom: 25px; font-size: 15px; line-height: 1.6; }
+        .portal-card .card-btn {
+            display: block;
+            padding: 12px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: bold;
+            margin-bottom: 10px;
+            transition: transform 0.2s;
+        }
+        .portal-card .card-btn:hover { transform: scale(1.03); }
+        .portal-card .card-btn-secondary {
+            display: block;
+            padding: 12px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: bold;
+            border: 2px solid;
+        }
+
+        .patient-card { background: #f0f9ff; border-top: 4px solid #0ea5e9; }
+        .patient-card h3 { color: #0284c7; }
+        .patient-card .card-btn { background: #0ea5e9; color: white; }
+        .patient-card .card-btn-secondary { border-color: #0ea5e9; color: #0ea5e9; }
+
+        .doctor-card { background: #f0fdf4; border-top: 4px solid #16a34a; }
+        .doctor-card h3 { color: #16a34a; }
+        .doctor-card .card-btn { background: #16a34a; color: white; }
+
+        .find-card { background: #fff7ed; border-top: 4px solid #f97316; }
+        .find-card h3 { color: #f97316; }
+        .find-card .card-btn { background: #f97316; color: white; }
 
         /* PROBLEM */
         .problem {
@@ -111,9 +195,7 @@
             gap: 40px;
             flex-wrap: wrap;
         }
-        .step {
-            width: 220px;
-        }
+        .step { width: 220px; }
         .step-number {
             background: #0ea5e9;
             color: white;
@@ -169,15 +251,53 @@
             <li><a href="#problem">Problem</a></li>
             <li><a href="#features">Features</a></li>
             <li><a href="#how">How it works</a></li>
-            <li><a href="#contact">Contact</a></li>
+            <li><a href="/clinics">Find a Doctor</a></li>
         </ul>
+        <div class="nav-btns">
+            <a href="/patient/login" class="nav-btn nav-btn-outline">My Profile</a>
+            <a href="/doctor/login" class="nav-btn nav-btn-filled">Doctor Login</a>
+        </div>
     </nav>
 
     <!-- HERO -->
     <section class="hero">
         <h1>Find a Doctor <span>Right Now</span></h1>
         <p>No more wasting hours in waiting rooms. See available doctors near you, check waiting times, and book instantly.</p>
-        <a href="/clinics" class="btn">Find a Doctor Now →</a>
+        <div class="hero-btns">
+            <a href="/clinics" class="btn">Find a Doctor Now →</a>
+            <a href="/patient/register" class="btn-outline">Create Account</a>
+        </div>
+    </section>
+
+    <!-- PORTAL SECTION -->
+    <section class="portal" id="portal">
+        <h2>Get Started Today</h2>
+        <p class="subtitle">Choose how you want to use Tabibak</p>
+        <div class="portal-cards">
+
+            <div class="portal-card patient-card">
+                <div class="icon">🧑‍💻</div>
+                <h3>I'm a Patient</h3>
+                <p>Find doctors, check wait times and manage your medical profile easily</p>
+                <a href="/patient/register" class="card-btn">Create Account →</a>
+                <a href="/patient/login" class="card-btn-secondary">Login</a>
+            </div>
+
+            <div class="portal-card doctor-card">
+                <div class="icon">👨‍⚕️</div>
+                <h3>I'm a Doctor</h3>
+                <p>Manage your clinic, queue and view patient medical profiles instantly</p>
+                <a href="/doctor/login" class="card-btn">Doctor Login →</a>
+            </div>
+
+            <div class="portal-card find-card">
+                <div class="icon">🏥</div>
+                <h3>Find a Doctor</h3>
+                <p>Browse available doctors near you and check live wait times right now</p>
+                <a href="/clinics" class="card-btn">Find Now →</a>
+            </div>
+
+        </div>
     </section>
 
     <!-- PROBLEM -->
@@ -224,6 +344,11 @@
                 <p>Know exactly how many patients are ahead of you before you leave home.</p>
             </div>
             <div class="feature-card">
+                <div class="icon">📋</div>
+                <h3>Medical Profile</h3>
+                <p>Upload your medical documents and share them with your doctor instantly.</p>
+            </div>
+            <div class="feature-card">
                 <div class="icon">⭐</div>
                 <h3>Verified Reviews</h3>
                 <p>Read real reviews from real patients to choose the best doctor.</p>
@@ -237,16 +362,21 @@
         <div class="steps">
             <div class="step">
                 <div class="step-number">1</div>
-                <h3>Search</h3>
-                <p>Enter your location and the type of doctor you need.</p>
+                <h3>Create Account</h3>
+                <p>Register as a patient and fill in your medical profile.</p>
             </div>
             <div class="step">
                 <div class="step-number">2</div>
-                <h3>Compare</h3>
-                <p>See availability, wait times, and reviews for nearby doctors.</p>
+                <h3>Find a Doctor</h3>
+                <p>Search nearby doctors, see availability and wait times.</p>
             </div>
             <div class="step">
                 <div class="step-number">3</div>
+                <h3>Share Profile</h3>
+                <p>Doctor sees your full medical history before you enter the room.</p>
+            </div>
+            <div class="step">
+                <div class="step-number">4</div>
                 <h3>Go!</h3>
                 <p>Head to the clinic knowing exactly what to expect. No surprises.</p>
             </div>
@@ -256,7 +386,7 @@
     <!-- CONTACT -->
     <section class="contact" id="contact">
         <h2>Want Early Access?</h2>
-        <p>Tabibak is coming soon. Be the first to know when we launch!</p>
+        <p>Tabibak is growing. Be the first to know about new features!</p>
         <a href="mailto:hello@tabibak.com">Get Early Access →</a>
     </section>
 
