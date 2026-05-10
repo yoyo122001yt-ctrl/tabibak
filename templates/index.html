@@ -27,7 +27,7 @@
         nav ul { list-style: none; display: flex; gap: 20px; flex-wrap: wrap; }
         nav ul a { text-decoration: none; color: #333; font-weight: 500; font-size: 14px; }
         nav ul a:hover { color: #0ea5e9; }
-        .nav-btns { display: flex; gap: 10px; }
+        .nav-btns { display: flex; gap: 10px; flex-wrap: wrap; }
         .nav-btn {
             padding: 8px 18px;
             border-radius: 50px;
@@ -39,6 +39,7 @@
         .nav-btn:hover { transform: scale(1.05); }
         .nav-btn-outline { border: 2px solid #0ea5e9; color: #0ea5e9; }
         .nav-btn-filled { background: #0ea5e9; color: white; }
+        .nav-btn-green { background: #16a34a; color: white; }
 
         /* HERO */
         .hero {
@@ -85,12 +86,7 @@
         }
         .portal h2 { font-size: 36px; margin-bottom: 10px; }
         .portal .subtitle { color: #777; margin-bottom: 50px; font-size: 18px; }
-        .portal-cards {
-            display: flex;
-            justify-content: center;
-            gap: 30px;
-            flex-wrap: wrap;
-        }
+        .portal-cards { display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; }
         .portal-card {
             border-radius: 20px;
             padding: 40px;
@@ -101,7 +97,7 @@
         .portal-card .icon { font-size: 50px; margin-bottom: 15px; }
         .portal-card h3 { font-size: 22px; margin-bottom: 10px; }
         .portal-card p { color: #666; margin-bottom: 25px; font-size: 15px; line-height: 1.6; }
-        .portal-card .card-btn {
+        .card-btn {
             display: block;
             padding: 12px;
             border-radius: 50px;
@@ -110,14 +106,15 @@
             margin-bottom: 10px;
             transition: transform 0.2s;
         }
-        .portal-card .card-btn:hover { transform: scale(1.03); }
-        .portal-card .card-btn-secondary {
+        .card-btn:hover { transform: scale(1.03); }
+        .card-btn-secondary {
             display: block;
             padding: 12px;
             border-radius: 50px;
             text-decoration: none;
             font-weight: bold;
             border: 2px solid;
+            margin-top: 10px;
         }
 
         .patient-card { background: #f0f9ff; border-top: 4px solid #0ea5e9; }
@@ -128,25 +125,17 @@
         .doctor-card { background: #f0fdf4; border-top: 4px solid #16a34a; }
         .doctor-card h3 { color: #16a34a; }
         .doctor-card .card-btn { background: #16a34a; color: white; }
+        .doctor-card .card-btn-secondary { border-color: #16a34a; color: #16a34a; }
 
         .find-card { background: #fff7ed; border-top: 4px solid #f97316; }
         .find-card h3 { color: #f97316; }
         .find-card .card-btn { background: #f97316; color: white; }
 
         /* PROBLEM */
-        .problem {
-            background: #f8fafc;
-            padding: 80px 40px;
-            text-align: center;
-        }
+        .problem { background: #f8fafc; padding: 80px 40px; text-align: center; }
         .problem h2 { font-size: 36px; margin-bottom: 20px; color: #0ea5e9; }
         .problem p { font-size: 18px; color: #555; margin-bottom: 40px; }
-        .problem-cards {
-            display: flex;
-            justify-content: center;
-            gap: 30px;
-            flex-wrap: wrap;
-        }
+        .problem-cards { display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; }
         .problem-card {
             background: white;
             border-radius: 16px;
@@ -159,18 +148,10 @@
         .problem-card p { font-size: 15px; color: #777; }
 
         /* FEATURES */
-        .features {
-            padding: 80px 40px;
-            text-align: center;
-        }
+        .features { padding: 80px 40px; text-align: center; }
         .features h2 { font-size: 36px; margin-bottom: 10px; }
         .features .subtitle { color: #777; margin-bottom: 50px; font-size: 18px; }
-        .features-grid {
-            display: flex;
-            justify-content: center;
-            gap: 30px;
-            flex-wrap: wrap;
-        }
+        .features-grid { display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; }
         .feature-card {
             background: #f0f9ff;
             border-radius: 16px;
@@ -183,18 +164,9 @@
         .feature-card p { font-size: 15px; color: #555; }
 
         /* HOW IT WORKS */
-        .how {
-            background: #f8fafc;
-            padding: 80px 40px;
-            text-align: center;
-        }
+        .how { background: #f8fafc; padding: 80px 40px; text-align: center; }
         .how h2 { font-size: 36px; margin-bottom: 50px; }
-        .steps {
-            display: flex;
-            justify-content: center;
-            gap: 40px;
-            flex-wrap: wrap;
-        }
+        .steps { display: flex; justify-content: center; gap: 40px; flex-wrap: wrap; }
         .step { width: 220px; }
         .step-number {
             background: #0ea5e9;
@@ -213,12 +185,7 @@
         .step p { font-size: 15px; color: #777; }
 
         /* CONTACT */
-        .contact {
-            padding: 80px 40px;
-            text-align: center;
-            background: #0ea5e9;
-            color: white;
-        }
+        .contact { padding: 80px 40px; text-align: center; background: #0ea5e9; color: white; }
         .contact h2 { font-size: 36px; margin-bottom: 15px; }
         .contact p { font-size: 18px; margin-bottom: 30px; opacity: 0.9; }
         .contact a {
@@ -232,14 +199,10 @@
         }
 
         /* FOOTER */
-        footer {
-            background: #1e293b;
-            color: #94a3b8;
-            text-align: center;
-            padding: 30px;
-            font-size: 14px;
-        }
+        footer { background: #1e293b; color: #94a3b8; text-align: center; padding: 30px; font-size: 14px; }
         footer span { color: #0ea5e9; }
+        footer a { color: #94a3b8; text-decoration: none; margin: 0 10px; }
+        footer a:hover { color: #0ea5e9; }
     </style>
 </head>
 <body>
@@ -256,6 +219,7 @@
         <div class="nav-btns">
             <a href="/patient/login" class="nav-btn nav-btn-outline">My Profile</a>
             <a href="/doctor/login" class="nav-btn nav-btn-filled">Doctor Login</a>
+            <a href="/doctor/register" class="nav-btn nav-btn-green">Join as Doctor</a>
         </div>
     </nav>
 
@@ -288,6 +252,7 @@
                 <h3>I'm a Doctor</h3>
                 <p>Manage your clinic, queue and view patient medical profiles instantly</p>
                 <a href="/doctor/login" class="card-btn">Doctor Login →</a>
+                <a href="/doctor/register" class="card-btn-secondary">Join as Doctor</a>
             </div>
 
             <div class="portal-card find-card">
@@ -393,6 +358,13 @@
     <!-- FOOTER -->
     <footer>
         <p>© 2026 <span>Tabibak طبيبك</span> — Making healthcare accessible for everyone.</p>
+        <p style="margin-top:10px;">
+            <a href="/patient/register">Patient Register</a>
+            <a href="/patient/login">Patient Login</a>
+            <a href="/doctor/register">Doctor Register</a>
+            <a href="/doctor/login">Doctor Login</a>
+            <a href="/clinics">Find a Doctor</a>
+        </p>
     </footer>
 
 </body>

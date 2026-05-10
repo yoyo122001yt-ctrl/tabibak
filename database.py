@@ -17,7 +17,7 @@ cursor.execute("""
     )
 """)
 
-# Doctors table
+# Doctors table - updated with more fields
 cursor.execute("""
     CREATE TABLE IF NOT EXISTS doctors (
         id INTEGER PRIMARY KEY,
@@ -25,7 +25,10 @@ cursor.execute("""
         email TEXT,
         password TEXT,
         clinic_id INTEGER,
-        is_arrived INTEGER
+        is_arrived INTEGER,
+        phone TEXT,
+        specialty TEXT,
+        status TEXT DEFAULT 'pending'
     )
 """)
 
@@ -53,7 +56,7 @@ cursor.execute("""
     )
 """)
 
-# Clear and re-add clinics and doctors
+# Clear and re-add sample data
 cursor.execute("DELETE FROM clinics")
 cursor.execute("DELETE FROM doctors")
 
@@ -61,15 +64,14 @@ cursor.execute("INSERT INTO clinics VALUES (1, 'Clinic Youssef', 'Dr. Ahmed', 'G
 cursor.execute("INSERT INTO clinics VALUES (2, 'Nile Medical', 'Dr. Sara', 'Cardiology', 6, 20, 1)")
 cursor.execute("INSERT INTO clinics VALUES (3, 'October Clinic', 'Dr. Mona', 'Pediatrics', 2, 10, 0)")
 
-cursor.execute("INSERT INTO doctors VALUES (1, 'Dr. Ahmed', 'ahmed@tabibak.com', 'ahmed123', 1, 0)")
-cursor.execute("INSERT INTO doctors VALUES (2, 'Dr. Sara', 'sara@tabibak.com', 'sara123', 2, 0)")
-cursor.execute("INSERT INTO doctors VALUES (3, 'Dr. Mona', 'mona@tabibak.com', 'mona123', 3, 0)")
+cursor.execute("INSERT INTO doctors VALUES (1, 'Dr. Ahmed', 'ahmed@tabibak.com', 'ahmed123', 1, 0, '01000000001', 'General', 'approved')")
+cursor.execute("INSERT INTO doctors VALUES (2, 'Dr. Sara', 'sara@tabibak.com', 'sara123', 2, 0, '01000000002', 'Cardiology', 'approved')")
+cursor.execute("INSERT INTO doctors VALUES (3, 'Dr. Mona', 'mona@tabibak.com', 'mona123', 3, 0, '01000000003', 'Pediatrics', 'approved')")
 
 conn.commit()
-print("✅ Database updated with patients and documents tables!")
+print("✅ Database updated!")
 
-# Create uploads folder
 os.makedirs("static/uploads", exist_ok=True)
-print("✅ Uploads folder created!")
+print("✅ Uploads folder ready!")
 
 conn.close()

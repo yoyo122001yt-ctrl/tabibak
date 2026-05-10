@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tabibak - Doctor Registration</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #16a34a, #15803d);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .register-box {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            width: 550px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+        }
+        .logo { font-size: 24px; font-weight: bold; color: #0ea5e9; margin-bottom: 5px; text-align: center; }
+        .subtitle { color: #999; margin-bottom: 30px; font-size: 15px; text-align: center; }
+        .section-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #16a34a;
+            margin-bottom: 15px;
+            margin-top: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; margin-bottom: 6px; font-weight: 600; color: #333; font-size: 14px; }
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 10px 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 15px;
+            outline: none;
+            transition: border 0.2s;
+        }
+        .input-group input:focus, .input-group select:focus { border-color: #16a34a; }
+        .row { display: flex; gap: 15px; }
+        .row .input-group { flex: 1; }
+        .register-btn {
+            width: 100%;
+            padding: 12px;
+            background: #16a34a;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 17px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+        .register-btn:hover { background: #15803d; }
+        .error {
+            background: #fee2e2;
+            color: #dc2626;
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+        .notice {
+            background: #fefce8;
+            color: #854d0e;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            border-left: 4px solid #eab308;
+        }
+        .login-link { text-align: center; margin-top: 15px; font-size: 14px; color: #666; }
+        .login-link a { color: #16a34a; text-decoration: none; font-weight: 600; }
+        .divider {
+            border: none;
+            border-top: 2px solid #f0f0f0;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="register-box">
+        <div class="logo">Tabibak طبيبك</div>
+        <div class="subtitle">Doctor Registration — Join our network</div>
+
+        <div class="notice">
+            ⚠️ After registration your account will be reviewed and approved within 24 hours before going live on Tabibak.
+        </div>
+
+        {% if error %}
+        <div class="error">❌ {{ error }}</div>
+        {% endif %}
+
+        <form method="POST" action="/doctor/register">
+
+            <div class="section-title">👨‍⚕️ Personal Information</div>
+            <div class="input-group">
+                <label>Full Name</label>
+                <input type="text" name="name" placeholder="Dr. Your Name" required>
+            </div>
+            <div class="row">
+                <div class="input-group">
+                    <label>Email</label>
+                    <input type="email" name="email" placeholder="your@email.com" required>
+                </div>
+                <div class="input-group">
+                    <label>Phone</label>
+                    <input type="text" name="phone" placeholder="01xxxxxxxxx" required>
+                </div>
+            </div>
+            <div class="input-group">
+                <label>Password</label>
+                <input type="password" name="password" placeholder="••••••••" required>
+            </div>
+
+            <hr class="divider">
+
+            <div class="section-title">🏥 Clinic Information</div>
+            <div class="input-group">
+                <label>Clinic Name</label>
+                <input type="text" name="clinic_name" placeholder="e.g. Cairo Heart Clinic" required>
+            </div>
+            <div class="row">
+                <div class="input-group">
+                    <label>Specialty</label>
+                    <select name="specialty">
+                        <option>General Practice</option>
+                        <option>Cardiology</option>
+                        <option>Pediatrics</option>
+                        <option>Dermatology</option>
+                        <option>Orthopedics</option>
+                        <option>Neurology</option>
+                        <option>Gynecology</option>
+                        <option>Ophthalmology</option>
+                        <option>ENT</option>
+                        <option>Dentistry</option>
+                        <option>Urology</option>
+                        <option>Psychiatry</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Minutes Per Patient</label>
+                    <select name="minutes_per_patient">
+                        <option value="10">10 minutes</option>
+                        <option value="15" selected>15 minutes</option>
+                        <option value="20">20 minutes</option>
+                        <option value="30">30 minutes</option>
+                        <option value="45">45 minutes</option>
+                    </select>
+                </div>
+            </div>
+
+            <button type="submit" class="register-btn">Submit Registration →</button>
+        </form>
+
+        <div class="login-link">
+            Already have an account? <a href="/doctor/login">Login here</a>
+        </div>
+        <div class="login-link" style="margin-top:8px;">
+            <a href="/">← Back to Tabibak</a>
+        </div>
+    </div>
+</body>
+</html>

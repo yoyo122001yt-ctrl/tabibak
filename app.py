@@ -48,6 +48,33 @@ def clinics():
     return render_template("clinics.html", clinics=data)
 
 # ─── DOCTOR ROUTES ────────────────────────────────────────
+@app.route("/doctor/register", methods=["GET", "POST"])
+def doctor_register():
+    if request.method == "POST":
+        name = request.form["name"]
+        email = request.form["email"]
+        password = request.form["password"]
+        phone = request.form["phone"]
+        clinic_name = request.form["clinic_name"]
+        specialty = request.form["specialty"]
+        minutes_per_patient = request.form["minutes_per_patient"]
+        conn = sqlite3.connect("tabibak.db")
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM doctors WHERE email = ?", (email,))
+        existing = cursor.fetchone()
+        if existing:
+            conn.close()
+            return render_template("doctor_register.html", error="Email already registered!", success=False)
+        cursor.execute("INSERT INTO clinics (name, doctor, specialty, patients_waiting, minutes_per_patient, is_open) VALUES (?, ?, ?, 0, ?, 0)",
+                      (clinic_name, name, specialty, minutes_per_patient))
+        clinic_id = cursor.lastrowid
+        cursor.execute("INSERT INTO doctors (name, email, password, clinic_id, is_arrived, phone, specialty, status) VALUES (?, ?, ?, ?, 0, ?, ?, 'pending')",
+                      (name, email, password, clinic_id, phone, specialty))
+        conn.commit()
+        conn.close()
+        return render_template("doctor_register.html", error=None, success=True)
+    return render_template("doctor_register.html", error=None, success=False)
+
 @app.route("/doctor/login", methods=["GET", "POST"])
 def doctor_login():
     if request.method == "POST":
@@ -55,6 +82,8 @@ def doctor_login():
         password = request.form["password"]
         doctor = get_doctor_by_email(email)
         if doctor and doctor[3] == password:
+            if doctor[8] == "pending":
+                return render_template("doctor_login.html", error="Your account is still pending approval. Please wait 24 hours.")
             session["doctor_id"] = doctor[0]
             session["doctor_name"] = doctor[1]
             session["clinic_id"] = doctor[4]
@@ -71,7 +100,11 @@ def doctor_dashboard():
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM clinics WHERE id = ?", (session["clinic_id"],))
     clinic = cursor.fetchone()
-    cursor.execute("SELECT patients.* FROM patients JOIN medical_documents ON patients.id = medical_documents.patient_id GROUP BY patients.id")
+    cursor.execute("""
+        SELECT patients.* FROM patients
+        JOIN medical_documents ON patients.id = medical_documents.patient_id
+        GROUP BY patients.id
+    """)
     patients = cursor.fetchall()
     conn.close()
     return render_template("doctor_dashboard.html", doctor=session["doctor_name"], clinic=clinic, patients=patients)
@@ -199,6 +232,65 @@ def patient_upload():
 def patient_logout():
     session.clear()
     return redirect("/")
+
+# ─── ADMIN ROUTES ─────────────────────────────────────────
+@app.route("/admin/login", methods=["GET", "POST"])
+def admin_login():
+    if request.method == "POST":
+        if request.form["password"] == "tabibak_admin_2026":
+            session["admin"] = True
+            return redirect("/admin")
+        return render_template("admin_login.html", error="Wrong password!")
+    return render_template("admin_login.html", error=None)
+
+@app.route("/admin")
+def admin():
+    if session.get("admin") != True:
+        return redirect("/admin/login")
+    conn = sqlite3.connect("tabibak.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM doctors")
+    doctors = cursor.fetchall()
+    cursor.execute("SELECT COUNT(*) FROM doctors WHERE status = 'pending'")
+    pending_doctors = cursor.fetchone()[0]
+    cursor.execute("SELECT COUNT(*) FROM patients")
+    total_patients = cursor.fetchone()[0]
+    cursor.execute("SELECT COUNT(*) FROM clinics")
+    total_clinics = cursor.fetchone()[0]
+    conn.close()
+    return render_template("admin.html",
+        doctors=doctors,
+        total_doctors=len(doctors),
+        pending_doctors=pending_doctors,
+        total_patients=total_patients,
+        total_clinics=total_clinics)
+
+@app.route("/admin/approve/<int:doctor_id>")
+def approve_doctor(doctor_id):
+    if session.get("admin") != True:
+        return redirect("/admin/login")
+    conn = sqlite3.connect("tabibak.db")
+    cursor = conn.cursor()
+    cursor.execute("UPDATE doctors SET status = 'approved' WHERE id = ?", (doctor_id,))
+    cursor.execute("UPDATE clinics SET is_open = 1 WHERE id = (SELECT clinic_id FROM doctors WHERE id = ?)", (doctor_id,))
+    conn.commit()
+    conn.close()
+    return redirect("/admin")
+
+@app.route("/admin/reject/<int:doctor_id>")
+def reject_doctor(doctor_id):
+    if session.get("admin") != True:
+        return redirect("/admin/login")
+    conn = sqlite3.connect("tabibak.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT clinic_id FROM doctors WHERE id = ?", (doctor_id,))
+    result = cursor.fetchone()
+    if result:
+        cursor.execute("DELETE FROM clinics WHERE id = ?", (result[0],))
+    cursor.execute("DELETE FROM doctors WHERE id = ?", (doctor_id,))
+    conn.commit()
+    conn.close()
+    return redirect("/admin")
 
 if __name__ == "__main__":
     app.run(debug=True)
