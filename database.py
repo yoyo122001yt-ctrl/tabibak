@@ -17,7 +17,7 @@ cursor.execute("""
     )
 """)
 
-# Doctors table - updated with more fields
+# Doctors table
 cursor.execute("""
     CREATE TABLE IF NOT EXISTS doctors (
         id INTEGER PRIMARY KEY,
@@ -44,16 +44,7 @@ cursor.execute("""
         phone TEXT
     )
 """)
-# Bookings table
-cursor.execute("""
-    CREATE TABLE IF NOT EXISTS bookings (
-        id INTEGER PRIMARY KEY,
-        patient_id INTEGER,
-        clinic_id INTEGER,
-        booked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        status TEXT DEFAULT 'waiting'
-    )
-""")
+
 # Medical documents table
 cursor.execute("""
     CREATE TABLE IF NOT EXISTS medical_documents (
@@ -65,17 +56,32 @@ cursor.execute("""
     )
 """)
 
-# Clear and re-add sample data
-cursor.execute("DELETE FROM clinics")
-cursor.execute("DELETE FROM doctors")
+# Bookings table
+cursor.execute("""
+    CREATE TABLE IF NOT EXISTS bookings (
+        id INTEGER PRIMARY KEY,
+        patient_id INTEGER,
+        clinic_id INTEGER,
+        booked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        status TEXT DEFAULT 'waiting'
+    )
+""")
 
-cursor.execute("INSERT INTO clinics VALUES (1, 'Clinic Youssef', 'Dr. Ahmed', 'General', 3, 15, 1)")
-cursor.execute("INSERT INTO clinics VALUES (2, 'Nile Medical', 'Dr. Sara', 'Cardiology', 6, 20, 1)")
-cursor.execute("INSERT INTO clinics VALUES (3, 'October Clinic', 'Dr. Mona', 'Pediatrics', 2, 10, 0)")
+# Only add sample data if clinics table is empty
+cursor.execute("SELECT COUNT(*) FROM clinics")
+count = cursor.fetchone()[0]
 
-cursor.execute("INSERT INTO doctors VALUES (1, 'Dr. Ahmed', 'ahmed@tabibak.com', 'ahmed123', 1, 0, '01000000001', 'General', 'approved')")
-cursor.execute("INSERT INTO doctors VALUES (2, 'Dr. Sara', 'sara@tabibak.com', 'sara123', 2, 0, '01000000002', 'Cardiology', 'approved')")
-cursor.execute("INSERT INTO doctors VALUES (3, 'Dr. Mona', 'mona@tabibak.com', 'mona123', 3, 0, '01000000003', 'Pediatrics', 'approved')")
+if count == 0:
+    print("Adding sample data...")
+    cursor.execute("INSERT INTO clinics VALUES (1, 'Clinic Youssef', 'Dr. Ahmed', 'General', 3, 15, 1)")
+    cursor.execute("INSERT INTO clinics VALUES (2, 'Nile Medical', 'Dr. Sara', 'Cardiology', 6, 20, 1)")
+    cursor.execute("INSERT INTO clinics VALUES (3, 'October Clinic', 'Dr. Mona', 'Pediatrics', 2, 10, 0)")
+    cursor.execute("INSERT INTO doctors VALUES (1, 'Dr. Ahmed', 'ahmed@tabibak.com', 'ahmed123', 1, 0, '01000000001', 'General', 'approved')")
+    cursor.execute("INSERT INTO doctors VALUES (2, 'Dr. Sara', 'sara@tabibak.com', 'sara123', 2, 0, '01000000002', 'Cardiology', 'approved')")
+    cursor.execute("INSERT INTO doctors VALUES (3, 'Dr. Mona', 'mona@tabibak.com', 'mona123', 3, 0, '01000000003', 'Pediatrics', 'approved')")
+    print("✅ Sample data added!")
+else:
+    print("✅ Database already has data — skipping sample data!")
 
 conn.commit()
 print("✅ Database updated!")
