@@ -47,6 +47,52 @@ def clinics():
     data = get_clinics()
     return render_template("clinics.html", clinics=data)
 
+# ─── BOOKING ROUTES ───────────────────────────────────────
+@app.route("/book/<int:clinic_id>")
+def book_clinic(clinic_id):
+    if "patient_id" not in session:
+        return redirect("/patient/login")
+    conn = sqlite3.connect("tabibak.db")
+    cursor = conn.cursor()
+    # Check if patient already booked this clinic
+    cursor.execute("SELECT * FROM bookings WHERE patient_id = ? AND clinic_id = ? AND status = 'waiting'",
+                  (session["patient_id"], clinic_id))
+    existing = cursor.fetchone()
+    if existing:
+        conn.close()
+        return redirect(f"/booking/confirm/{clinic_id}?already=true")
+    # Add patient to queue
+    cursor.execute("UPDATE clinics SET patients_waiting = patients_waiting + 1 WHERE id = ?", (clinic_id,))
+    # Save booking
+    cursor.execute("INSERT INTO bookings (patient_id, clinic_id) VALUES (?, ?)",
+                  (session["patient_id"], clinic_id))
+    conn.commit()
+    conn.close()
+    return redirect(f"/booking/confirm/{clinic_id}")
+
+@app.route("/booking/confirm/<int:clinic_id>")
+def booking_confirm(clinic_id):
+    if "patient_id" not in session:
+        return redirect("/patient/login")
+    already = request.args.get("already", False)
+    conn = sqlite3.connect("tabibak.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM clinics WHERE id = ?", (clinic_id,))
+    clinic = cursor.fetchone()
+    cursor.execute("SELECT * FROM patients WHERE id = ?", (session["patient_id"],))
+    patient = cursor.fetchone()
+    cursor.execute("SELECT COUNT(*) FROM bookings WHERE clinic_id = ? AND status = 'waiting'",
+                  (clinic_id,))
+    queue_position = cursor.fetchone()[0]
+    conn.close()
+    wait_time = clinic[4] * clinic[5]
+    return render_template("booking_confirm.html",
+        clinic=clinic,
+        patient=patient,
+        wait_time=wait_time,
+        queue_position=queue_position,
+        already=already)
+
 # ─── DOCTOR ROUTES ────────────────────────────────────────
 @app.route("/doctor/register", methods=["GET", "POST"])
 def doctor_register():

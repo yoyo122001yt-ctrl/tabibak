@@ -42,6 +42,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
         }
 
         .clinic-info h2 { font-size: 22px; color: #0284c7; margin-bottom: 5px; }
@@ -68,11 +70,7 @@
             display: inline-block;
         }
 
-        .wait-time {
-            font-size: 28px;
-            font-weight: bold;
-            color: #0ea5e9;
-        }
+        .wait-time { font-size: 28px; font-weight: bold; color: #0ea5e9; }
         .wait-label { font-size: 13px; color: #999; }
 
         .book-btn {
@@ -80,18 +78,144 @@
             color: white;
             padding: 10px 25px;
             border-radius: 50px;
-            text-decoration: none;
+            border: none;
             font-weight: bold;
+            font-size: 15px;
+            cursor: pointer;
             display: inline-block;
             margin-top: 10px;
+            transition: background 0.2s;
         }
         .book-btn:hover { background: #0284c7; }
 
-        footer {
+        footer { text-align: center; padding: 20px; color: #999; font-size: 14px; }
+
+        /* POPUP OVERLAY */
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .overlay.active { display: flex; }
+
+        /* CONFIRM POPUP */
+        .popup {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            width: 420px;
             text-align: center;
-            padding: 20px;
-            color: #999;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: popIn 0.3s ease;
+        }
+        @keyframes popIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .popup-icon { font-size: 60px; margin-bottom: 15px; }
+        .popup h2 { font-size: 24px; margin-bottom: 10px; }
+        .popup p { color: #666; margin-bottom: 20px; font-size: 15px; line-height: 1.6; }
+        .popup-clinic { background: #f0f9ff; border-radius: 12px; padding: 15px; margin-bottom: 20px; }
+        .popup-clinic h3 { color: #0284c7; font-size: 18px; }
+        .popup-clinic p { color: #555; font-size: 14px; margin: 0; }
+        .popup-btns { display: flex; gap: 10px; justify-content: center; }
+        .popup-btns button {
+            padding: 12px 25px;
+            border-radius: 50px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+            transition: transform 0.2s;
+        }
+        .popup-btns button:hover { transform: scale(1.05); }
+        .btn-cancel { background: #f1f5f9; color: #555; }
+        .btn-confirm { background: #0ea5e9; color: white; }
+
+        /* PAYMENT POPUP */
+        .payment-popup {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            width: 450px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: popIn 0.3s ease;
+        }
+        .payment-popup h2 { font-size: 22px; margin-bottom: 5px; }
+        .payment-popup .subtitle { color: #999; margin-bottom: 25px; font-size: 14px; }
+        .payment-methods {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+        .pay-method {
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 15px 20px;
+            cursor: pointer;
+            flex: 1;
+            transition: all 0.2s;
             font-size: 14px;
+            font-weight: 600;
+            color: #555;
+        }
+        .pay-method:hover { border-color: #0ea5e9; color: #0ea5e9; }
+        .pay-method.selected { border-color: #0ea5e9; background: #f0f9ff; color: #0ea5e9; }
+        .pay-method .method-icon { font-size: 28px; display: block; margin-bottom: 5px; }
+
+        .input-group { margin-bottom: 15px; text-align: left; }
+        .input-group label { display: block; margin-bottom: 6px; font-weight: 600; color: #333; font-size: 14px; }
+        .input-group input {
+            width: 100%;
+            padding: 10px 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 15px;
+            outline: none;
+        }
+        .input-group input:focus { border-color: #0ea5e9; }
+        .row { display: flex; gap: 10px; }
+        .row .input-group { flex: 1; }
+
+        .price-box {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .price-box span { color: #666; font-size: 15px; }
+        .price-box strong { font-size: 22px; color: #0ea5e9; }
+
+        .pay-btn {
+            width: 100%;
+            padding: 14px;
+            background: #0ea5e9;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 17px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .pay-btn:hover { background: #0284c7; }
+        .skip-link {
+            display: block;
+            margin-top: 12px;
+            color: #999;
+            font-size: 13px;
+            cursor: pointer;
+            text-decoration: underline;
         }
     </style>
 </head>
@@ -125,7 +249,9 @@
                 <div class="wait-time">{{ clinic[4] * clinic[5] }} min</div>
                 <div class="wait-label">estimated wait</div>
                 {% if clinic[6] == 1 %}
-                    <a href="#" class="book-btn">Book Now</a>
+                    <button class="book-btn" onclick="showConfirm({{ clinic[0] }}, '{{ clinic[1] }}', '{{ clinic[2] }}', {{ clinic[4] * clinic[5] }})">
+                        Book Now
+                    </button>
                 {% endif %}
             </div>
         </div>
@@ -133,6 +259,133 @@
     </div>
 
     <footer>© 2026 Tabibak طبيبك</footer>
+
+    <!-- CONFIRM POPUP -->
+    <div class="overlay" id="confirmOverlay">
+        <div class="popup">
+            <div class="popup-icon">🏥</div>
+            <h2>Book Appointment?</h2>
+            <p>Are you sure you want to book a spot at this clinic?</p>
+            <div class="popup-clinic">
+                <h3 id="popupClinicName"></h3>
+                <p id="popupDoctorName"></p>
+                <p>⏱️ Estimated wait: <strong id="popupWaitTime"></strong> minutes</p>
+            </div>
+            <div class="popup-btns">
+                <button class="btn-cancel" onclick="closeConfirm()">❌ Cancel</button>
+                <button class="btn-confirm" onclick="showPayment()">✅ Yes, Book!</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAYMENT POPUP -->
+    <div class="overlay" id="paymentOverlay">
+        <div class="payment-popup">
+            <h2>💳 Booking Fee</h2>
+            <p class="subtitle">Pay a small fee to confirm your appointment</p>
+
+            <div class="price-box">
+                <span>Appointment booking fee</span>
+                <strong>50 EGP</strong>
+            </div>
+
+            <div class="payment-methods">
+                <div class="pay-method selected" onclick="selectMethod(this, 'card')">
+                    <span class="method-icon">💳</span>
+                    Card
+                </div>
+                <div class="pay-method" onclick="selectMethod(this, 'vodafone')">
+                    <span class="method-icon">📱</span>
+                    Vodafone Cash
+                </div>
+                <div class="pay-method" onclick="selectMethod(this, 'instapay')">
+                    <span class="method-icon">🏦</span>
+                    InstaPay
+                </div>
+            </div>
+
+            <!-- Card Fields -->
+            <div id="cardFields">
+                <div class="input-group">
+                    <label>Card Number</label>
+                    <input type="text" placeholder="1234 5678 9012 3456" maxlength="19" oninput="formatCard(this)">
+                </div>
+                <div class="row">
+                    <div class="input-group">
+                        <label>Expiry Date</label>
+                        <input type="text" placeholder="MM/YY" maxlength="5">
+                    </div>
+                    <div class="input-group">
+                        <label>CVV</label>
+                        <input type="text" placeholder="123" maxlength="3">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vodafone Fields -->
+            <div id="vodafoneFields" style="display:none;">
+                <div class="input-group">
+                    <label>Vodafone Cash Number</label>
+                    <input type="text" placeholder="01xxxxxxxxx">
+                </div>
+            </div>
+
+            <!-- InstaPay Fields -->
+            <div id="instapayFields" style="display:none;">
+                <div class="input-group">
+                    <label>InstaPay Username</label>
+                    <input type="text" placeholder="your instapay username">
+                </div>
+            </div>
+
+            <button class="pay-btn" onclick="confirmPayment()">💳 Pay & Confirm Booking</button>
+            <span class="skip-link" onclick="skipPayment()">Skip payment and book anyway</span>
+        </div>
+    </div>
+
+    <script>
+        let selectedClinicId = null;
+        let selectedMethod = 'card';
+
+        function showConfirm(clinicId, clinicName, doctorName, waitTime) {
+            selectedClinicId = clinicId;
+            document.getElementById('popupClinicName').textContent = clinicName;
+            document.getElementById('popupDoctorName').textContent = '👨‍⚕️ ' + doctorName;
+            document.getElementById('popupWaitTime').textContent = waitTime;
+            document.getElementById('confirmOverlay').classList.add('active');
+        }
+
+        function closeConfirm() {
+            document.getElementById('confirmOverlay').classList.remove('active');
+        }
+
+        function showPayment() {
+            document.getElementById('confirmOverlay').classList.remove('active');
+            document.getElementById('paymentOverlay').classList.add('active');
+        }
+
+        function selectMethod(el, method) {
+            selectedMethod = method;
+            document.querySelectorAll('.pay-method').forEach(m => m.classList.remove('selected'));
+            el.classList.add('selected');
+            document.getElementById('cardFields').style.display = method === 'card' ? 'block' : 'none';
+            document.getElementById('vodafoneFields').style.display = method === 'vodafone' ? 'block' : 'none';
+            document.getElementById('instapayFields').style.display = method === 'instapay' ? 'block' : 'none';
+        }
+
+        function formatCard(input) {
+            let value = input.value.replace(/\D/g, '').substring(0, 16);
+            input.value = value.replace(/(.{4})/g, '$1 ').trim();
+        }
+
+        function confirmPayment() {
+            window.location.href = '/book/' + selectedClinicId;
+        }
+
+        function skipPayment() {
+            window.location.href = '/book/' + selectedClinicId;
+        }
+    </script>
 
 </body>
 </html>

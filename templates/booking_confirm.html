@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tabibak - Booking Confirmed</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f9ff; color: #333; }
+
+        nav {
+            background: white;
+            padding: 15px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .logo { font-size: 24px; font-weight: bold; color: #0ea5e9; }
+
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 0 20px;
+            text-align: center;
+        }
+
+        .success-icon { font-size: 80px; margin-bottom: 20px; }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .already-card {
+            background: #fefce8;
+            border: 2px solid #eab308;
+        }
+
+        .card h2 { font-size: 28px; margin-bottom: 10px; color: #16a34a; }
+        .already-card h2 { color: #854d0e; }
+        .card p { color: #666; margin-bottom: 20px; font-size: 16px; }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 25px 0;
+            text-align: left;
+        }
+        .info-item {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 15px;
+        }
+        .info-item label { font-size: 12px; color: #999; display: block; margin-bottom: 5px; }
+        .info-item p { font-size: 18px; font-weight: bold; color: #333; }
+
+        .wait-box {
+            background: linear-gradient(135deg, #0ea5e9, #0284c7);
+            color: white;
+            border-radius: 16px;
+            padding: 25px;
+            margin: 20px 0;
+        }
+        .wait-box .minutes { font-size: 56px; font-weight: bold; }
+        .wait-box .label { font-size: 16px; opacity: 0.9; }
+
+        .btn {
+            display: inline-block;
+            padding: 14px 30px;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: bold;
+            text-decoration: none;
+            margin: 5px;
+            transition: transform 0.2s;
+        }
+        .btn:hover { transform: scale(1.05); }
+        .btn-blue { background: #0ea5e9; color: white; }
+        .btn-outline { border: 2px solid #0ea5e9; color: #0ea5e9; }
+        .btn-green { background: #16a34a; color: white; }
+
+        .tips {
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            text-align: left;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+        .tips h3 { margin-bottom: 15px; color: #0284c7; }
+        .tips ul { list-style: none; }
+        .tips ul li { padding: 8px 0; color: #555; font-size: 15px; }
+        .tips ul li::before { content: "✅ "; }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="logo">Tabibak طبيبك</div>
+        <a href="/clinics" style="color:#0ea5e9; text-decoration:none; font-weight:600;">← Back to Clinics</a>
+    </nav>
+
+    <div class="container">
+
+        {% if already %}
+        <div class="card already-card">
+            <div class="success-icon">⚠️</div>
+            <h2>Already Booked!</h2>
+            <p>You already have an active booking at <strong>{{ clinic[1] }}</strong>. You're still in the queue!</p>
+
+            <div class="wait-box">
+                <div class="minutes">{{ wait_time }}</div>
+                <div class="label">minutes estimated wait</div>
+            </div>
+
+            <a href="/clinics" class="btn btn-outline">← Back to Clinics</a>
+            <a href="/patient/profile" class="btn btn-blue">My Profile</a>
+        </div>
+
+        {% else %}
+        <div class="card">
+            <div class="success-icon">🎉</div>
+            <h2>Booking Confirmed!</h2>
+            <p>You have successfully joined the queue at <strong>{{ clinic[1] }}</strong></p>
+
+            <div class="info-grid">
+                <div class="info-item">
+                    <label>Your Name</label>
+                    <p>{{ patient[1] }}</p>
+                </div>
+                <div class="info-item">
+                    <label>Clinic</label>
+                    <p>{{ clinic[1] }}</p>
+                </div>
+                <div class="info-item">
+                    <label>Doctor</label>
+                    <p>{{ clinic[2] }}</p>
+                </div>
+                <div class="info-item">
+                    <label>Your Position</label>
+                    <p>#{{ queue_position }} in queue</p>
+                </div>
+            </div>
+
+            <div class="wait-box">
+                <div class="minutes">{{ wait_time }}</div>
+                <div class="label">minutes estimated wait time</div>
+            </div>
+
+            <a href="/clinics" class="btn btn-outline">← Back to Clinics</a>
+            <a href="/patient/profile" class="btn btn-green">My Profile 👤</a>
+        </div>
+
+        <div class="tips">
+            <h3>📋 Before You Go</h3>
+            <ul>
+                <li>Make sure your medical documents are uploaded to your profile</li>
+                <li>Arrive a few minutes before your estimated time</li>
+                <li>Bring your phone so the doctor can access your Tabibak profile</li>
+                <li>The wait time updates automatically as patients are seen</li>
+            </ul>
+        </div>
+        {% endif %}
+
+    </div>
+
+</body>
+</html>

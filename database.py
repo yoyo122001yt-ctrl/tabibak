@@ -44,7 +44,16 @@ cursor.execute("""
         phone TEXT
     )
 """)
-
+# Bookings table
+cursor.execute("""
+    CREATE TABLE IF NOT EXISTS bookings (
+        id INTEGER PRIMARY KEY,
+        patient_id INTEGER,
+        clinic_id INTEGER,
+        booked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        status TEXT DEFAULT 'waiting'
+    )
+""")
 # Medical documents table
 cursor.execute("""
     CREATE TABLE IF NOT EXISTS medical_documents (
