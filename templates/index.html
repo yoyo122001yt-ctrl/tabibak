@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" id="htmlRoot">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tabibak - طبيبك</title>
+    <script src="/static/translations.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', sans-serif; color: #333; }
@@ -27,7 +28,7 @@
         nav ul { list-style: none; display: flex; gap: 20px; flex-wrap: wrap; }
         nav ul a { text-decoration: none; color: #333; font-weight: 500; font-size: 14px; }
         nav ul a:hover { color: #0ea5e9; }
-        .nav-btns { display: flex; gap: 10px; flex-wrap: wrap; }
+        .nav-btns { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
         .nav-btn {
             padding: 8px 18px;
             border-radius: 50px;
@@ -40,6 +41,33 @@
         .nav-btn-outline { border: 2px solid #0ea5e9; color: #0ea5e9; }
         .nav-btn-filled { background: #0ea5e9; color: white; }
         .nav-btn-green { background: #16a34a; color: white; }
+
+        /* LANGUAGE SWITCHER */
+        .lang-switcher {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+            background: #f8fafc;
+            padding: 5px 10px;
+            border-radius: 50px;
+            border: 1px solid #e2e8f0;
+        }
+        .lang-btn {
+            font-size: 20px;
+            cursor: pointer;
+            padding: 3px 5px;
+            border-radius: 8px;
+            transition: transform 0.2s, background 0.2s;
+            border: none;
+            background: transparent;
+        }
+        .lang-btn:hover { transform: scale(1.2); background: #e2e8f0; }
+        .lang-btn.active { background: #0ea5e9; border-radius: 8px; }
+
+        /* RTL support for Arabic */
+        body.rtl { direction: rtl; text-align: right; }
+        body.rtl nav { flex-direction: row-reverse; }
+        body.rtl nav ul { flex-direction: row-reverse; }
 
         /* HERO */
         .hero {
@@ -79,43 +107,18 @@
         .btn-outline:hover { transform: scale(1.05); background: rgba(255,255,255,0.1); }
 
         /* PORTAL SECTION */
-        .portal {
-            padding: 80px 40px;
-            text-align: center;
-            background: white;
-        }
+        .portal { padding: 80px 40px; text-align: center; background: white; }
         .portal h2 { font-size: 36px; margin-bottom: 10px; }
         .portal .subtitle { color: #777; margin-bottom: 50px; font-size: 18px; }
         .portal-cards { display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; }
-        .portal-card {
-            border-radius: 20px;
-            padding: 40px;
-            width: 280px;
-            transition: transform 0.2s;
-        }
+        .portal-card { border-radius: 20px; padding: 40px; width: 280px; transition: transform 0.2s; }
         .portal-card:hover { transform: translateY(-5px); }
         .portal-card .icon { font-size: 50px; margin-bottom: 15px; }
         .portal-card h3 { font-size: 22px; margin-bottom: 10px; }
         .portal-card p { color: #666; margin-bottom: 25px; font-size: 15px; line-height: 1.6; }
-        .card-btn {
-            display: block;
-            padding: 12px;
-            border-radius: 50px;
-            text-decoration: none;
-            font-weight: bold;
-            margin-bottom: 10px;
-            transition: transform 0.2s;
-        }
+        .card-btn { display: block; padding: 12px; border-radius: 50px; text-decoration: none; font-weight: bold; margin-bottom: 10px; transition: transform 0.2s; }
         .card-btn:hover { transform: scale(1.03); }
-        .card-btn-secondary {
-            display: block;
-            padding: 12px;
-            border-radius: 50px;
-            text-decoration: none;
-            font-weight: bold;
-            border: 2px solid;
-            margin-top: 10px;
-        }
+        .card-btn-secondary { display: block; padding: 12px; border-radius: 50px; text-decoration: none; font-weight: bold; border: 2px solid; margin-top: 10px; }
 
         .patient-card { background: #f0f9ff; border-top: 4px solid #0ea5e9; }
         .patient-card h3 { color: #0284c7; }
@@ -136,13 +139,7 @@
         .problem h2 { font-size: 36px; margin-bottom: 20px; color: #0ea5e9; }
         .problem p { font-size: 18px; color: #555; margin-bottom: 40px; }
         .problem-cards { display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; }
-        .problem-card {
-            background: white;
-            border-radius: 16px;
-            padding: 30px;
-            width: 280px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-        }
+        .problem-card { background: white; border-radius: 16px; padding: 30px; width: 280px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
         .problem-card .icon { font-size: 40px; margin-bottom: 15px; }
         .problem-card h3 { font-size: 18px; margin-bottom: 10px; }
         .problem-card p { font-size: 15px; color: #777; }
@@ -152,13 +149,7 @@
         .features h2 { font-size: 36px; margin-bottom: 10px; }
         .features .subtitle { color: #777; margin-bottom: 50px; font-size: 18px; }
         .features-grid { display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; }
-        .feature-card {
-            background: #f0f9ff;
-            border-radius: 16px;
-            padding: 30px;
-            width: 250px;
-            border-top: 4px solid #0ea5e9;
-        }
+        .feature-card { background: #f0f9ff; border-radius: 16px; padding: 30px; width: 250px; border-top: 4px solid #0ea5e9; }
         .feature-card .icon { font-size: 36px; margin-bottom: 15px; }
         .feature-card h3 { font-size: 18px; margin-bottom: 10px; color: #0284c7; }
         .feature-card p { font-size: 15px; color: #555; }
@@ -168,19 +159,7 @@
         .how h2 { font-size: 36px; margin-bottom: 50px; }
         .steps { display: flex; justify-content: center; gap: 40px; flex-wrap: wrap; }
         .step { width: 220px; }
-        .step-number {
-            background: #0ea5e9;
-            color: white;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            font-size: 22px;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 20px;
-        }
+        .step-number { background: #0ea5e9; color: white; width: 50px; height: 50px; border-radius: 50%; font-size: 22px; font-weight: bold; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; }
         .step h3 { font-size: 18px; margin-bottom: 10px; }
         .step p { font-size: 15px; color: #777; }
 
@@ -188,15 +167,7 @@
         .contact { padding: 80px 40px; text-align: center; background: #0ea5e9; color: white; }
         .contact h2 { font-size: 36px; margin-bottom: 15px; }
         .contact p { font-size: 18px; margin-bottom: 30px; opacity: 0.9; }
-        .contact a {
-            background: white;
-            color: #0ea5e9;
-            padding: 15px 40px;
-            border-radius: 50px;
-            font-size: 18px;
-            font-weight: bold;
-            text-decoration: none;
-        }
+        .contact a { background: white; color: #0ea5e9; padding: 15px 40px; border-radius: 50px; font-size: 18px; font-weight: bold; text-decoration: none; }
 
         /* FOOTER */
         footer { background: #1e293b; color: #94a3b8; text-align: center; padding: 30px; font-size: 14px; }
@@ -211,87 +182,91 @@
     <nav>
         <div class="logo">Tabibak <span>طبيبك</span></div>
         <ul>
-            <li><a href="#problem">Problem</a></li>
-            <li><a href="#features">Features</a></li>
-            <li><a href="#how">How it works</a></li>
-            <li><a href="/clinics">Find a Doctor</a></li>
+            <li><a href="#problem" data-t="problem_title">Problem</a></li>
+            <li><a href="#features" data-t="features_title">Features</a></li>
+            <li><a href="#how" data-t="how_title">How it works</a></li>
+            <li><a href="/clinics" data-t="find_card">Find a Doctor</a></li>
         </ul>
         <div class="nav-btns">
-            <a href="/patient/login" class="nav-btn nav-btn-outline">My Profile</a>
-            <a href="/doctor/login" class="nav-btn nav-btn-filled">Doctor Login</a>
-            <a href="/doctor/register" class="nav-btn nav-btn-green">Join as Doctor</a>
+            <!-- Language Switcher -->
+            <div class="lang-switcher">
+                <button class="lang-btn active" onclick="setLang('en')" title="English">🇬🇧</button>
+                <button class="lang-btn" onclick="setLang('ar')" title="العربية">🇸🇦</button>
+                <button class="lang-btn" onclick="setLang('fr')" title="Français">🇫🇷</button>
+                <button class="lang-btn" onclick="setLang('de')" title="Deutsch">🇩🇪</button>
+                <button class="lang-btn" onclick="setLang('zh')" title="中文">🇨🇳</button>
+            </div>
+            <a href="/patient/login" class="nav-btn nav-btn-outline" data-t="my_profile">My Profile</a>
+            <a href="/doctor/login" class="nav-btn nav-btn-filled" data-t="doctor_login">Doctor Login</a>
+            <a href="/doctor/register" class="nav-btn nav-btn-green" data-t="join_doctor">Join as Doctor</a>
         </div>
     </nav>
 
     <!-- HERO -->
     <section class="hero">
-        <h1>Find a Doctor <span>Right Now</span></h1>
-        <p>No more wasting hours in waiting rooms. See available doctors near you, check waiting times, and book instantly.</p>
+        <h1 data-t="find_doctor">Find a Doctor <span>Right Now</span></h1>
+        <p data-t="hero_sub">No more wasting hours in waiting rooms. See available doctors near you, check waiting times, and book instantly.</p>
         <div class="hero-btns">
-            <a href="/clinics" class="btn">Find a Doctor Now →</a>
-            <a href="/patient/register" class="btn-outline">Create Account</a>
+            <a href="/clinics" class="btn" data-t="find_btn">Find a Doctor Now →</a>
+            <a href="/patient/register" class="btn-outline" data-t="create_acc">Create Account</a>
         </div>
     </section>
 
     <!-- PORTAL SECTION -->
     <section class="portal" id="portal">
-        <h2>Get Started Today</h2>
-        <p class="subtitle">Choose how you want to use Tabibak</p>
+        <h2 data-t="get_started">Get Started Today</h2>
+        <p class="subtitle" data-t="get_started_sub">Choose how you want to use Tabibak</p>
         <div class="portal-cards">
-
             <div class="portal-card patient-card">
                 <div class="icon">🧑‍💻</div>
-                <h3>I'm a Patient</h3>
-                <p>Find doctors, check wait times and manage your medical profile easily</p>
-                <a href="/patient/register" class="card-btn">Create Account →</a>
-                <a href="/patient/login" class="card-btn-secondary">Login</a>
+                <h3 data-t="im_patient">I'm a Patient</h3>
+                <p data-t="patient_desc">Find doctors, check wait times and manage your medical profile easily</p>
+                <a href="/patient/register" class="card-btn" data-t="create_account">Create Account →</a>
+                <a href="/patient/login" class="card-btn-secondary" data-t="login">Login</a>
             </div>
-
             <div class="portal-card doctor-card">
                 <div class="icon">👨‍⚕️</div>
-                <h3>I'm a Doctor</h3>
-                <p>Manage your clinic, queue and view patient medical profiles instantly</p>
-                <a href="/doctor/login" class="card-btn">Doctor Login →</a>
-                <a href="/doctor/register" class="card-btn-secondary">Join as Doctor</a>
+                <h3 data-t="im_doctor">I'm a Doctor</h3>
+                <p data-t="doctor_desc">Manage your clinic, queue and view patient medical profiles instantly</p>
+                <a href="/doctor/login" class="card-btn" data-t="doctor_login">Doctor Login →</a>
+                <a href="/doctor/register" class="card-btn-secondary" data-t="join_doctor">Join as Doctor</a>
             </div>
-
             <div class="portal-card find-card">
                 <div class="icon">🏥</div>
-                <h3>Find a Doctor</h3>
-                <p>Browse available doctors near you and check live wait times right now</p>
-                <a href="/clinics" class="card-btn">Find Now →</a>
+                <h3 data-t="find_card">Find a Doctor</h3>
+                <p data-t="find_desc">Browse available doctors near you and check live wait times right now</p>
+                <a href="/clinics" class="card-btn" data-t="find_now">Find Now →</a>
             </div>
-
         </div>
     </section>
 
     <!-- PROBLEM -->
     <section class="problem" id="problem">
-        <h2>Sound Familiar? 😣</h2>
-        <p>Every day, millions of people face these frustrating problems</p>
+        <h2 data-t="problem_title">Sound Familiar? 😣</h2>
+        <p data-t="problem_sub">Every day, millions of people face these frustrating problems</p>
         <div class="problem-cards">
             <div class="problem-card">
                 <div class="icon">⏰</div>
-                <h3>Hours of Waiting</h3>
-                <p>You arrive at a clinic and wait 3 hours without knowing how many people are ahead of you.</p>
+                <h3 data-t="problem1_title">Hours of Waiting</h3>
+                <p data-t="problem1_desc">You arrive at a clinic and wait 3 hours without knowing how many people are ahead of you.</p>
             </div>
             <div class="problem-card">
                 <div class="icon">🤷</div>
-                <h3>Is the Doctor Even There?</h3>
-                <p>You travel to a clinic only to find out the doctor is not available today.</p>
+                <h3 data-t="problem2_title">Is the Doctor Even There?</h3>
+                <p data-t="problem2_desc">You travel to a clinic only to find out the doctor is not available today.</p>
             </div>
             <div class="problem-card">
                 <div class="icon">🔍</div>
-                <h3>Hard to Find Specialists</h3>
-                <p>You need a specific doctor but have no idea who is nearby or if they are any good.</p>
+                <h3 data-t="problem3_title">Hard to Find Specialists</h3>
+                <p data-t="problem3_desc">You need a specific doctor but have no idea who is nearby or if they are any good.</p>
             </div>
         </div>
     </section>
 
     <!-- FEATURES -->
     <section class="features" id="features">
-        <h2>How Tabibak Helps You</h2>
-        <p class="subtitle">Everything you need to find the right doctor, fast</p>
+        <h2 data-t="features_title">How Tabibak Helps You</h2>
+        <p class="subtitle" data-t="features_sub">Everything you need to find the right doctor, fast</p>
         <div class="features-grid">
             <div class="feature-card">
                 <div class="icon">📍</div>
@@ -323,49 +298,92 @@
 
     <!-- HOW IT WORKS -->
     <section class="how" id="how">
-        <h2>How It Works 🚀</h2>
+        <h2 data-t="how_title">How It Works 🚀</h2>
         <div class="steps">
             <div class="step">
                 <div class="step-number">1</div>
-                <h3>Create Account</h3>
-                <p>Register as a patient and fill in your medical profile.</p>
+                <h3 data-t="step1_title">Create Account</h3>
+                <p data-t="step1_desc">Register as a patient and fill in your medical profile.</p>
             </div>
             <div class="step">
                 <div class="step-number">2</div>
-                <h3>Find a Doctor</h3>
-                <p>Search nearby doctors, see availability and wait times.</p>
+                <h3 data-t="step2_title">Find a Doctor</h3>
+                <p data-t="step2_desc">Search nearby doctors, see availability and wait times.</p>
             </div>
             <div class="step">
                 <div class="step-number">3</div>
-                <h3>Share Profile</h3>
-                <p>Doctor sees your full medical history before you enter the room.</p>
+                <h3 data-t="step3_title">Share Profile</h3>
+                <p data-t="step3_desc">Doctor sees your full medical history before you enter the room.</p>
             </div>
             <div class="step">
                 <div class="step-number">4</div>
-                <h3>Go!</h3>
-                <p>Head to the clinic knowing exactly what to expect. No surprises.</p>
+                <h3 data-t="step4_title">Go!</h3>
+                <p data-t="step4_desc">Head to the clinic knowing exactly what to expect. No surprises.</p>
             </div>
         </div>
     </section>
 
     <!-- CONTACT -->
     <section class="contact" id="contact">
-        <h2>Want Early Access?</h2>
-        <p>Tabibak is growing. Be the first to know about new features!</p>
-        <a href="mailto:hello@tabibak.com">Get Early Access →</a>
+        <h2 data-t="contact_title">Want Early Access?</h2>
+        <p data-t="contact_sub">Tabibak is growing. Be the first to know about new features!</p>
+        <a href="mailto:hello@tabibak.com" data-t="contact_btn">Get Early Access →</a>
     </section>
 
     <!-- FOOTER -->
     <footer>
-        <p>© 2026 <span>Tabibak طبيبك</span> — Making healthcare accessible for everyone.</p>
+        <p>© 2026 <span>Tabibak طبيبك</span> — <span data-t="footer">Making healthcare accessible for everyone.</span></p>
         <p style="margin-top:10px;">
-            <a href="/patient/register">Patient Register</a>
-            <a href="/patient/login">Patient Login</a>
-            <a href="/doctor/register">Doctor Register</a>
-            <a href="/doctor/login">Doctor Login</a>
-            <a href="/clinics">Find a Doctor</a>
+            <a href="/patient/register" data-t="create_acc">Patient Register</a>
+            <a href="/patient/login" data-t="my_profile">Patient Login</a>
+            <a href="/doctor/register" data-t="join_doctor">Doctor Register</a>
+            <a href="/doctor/login" data-t="doctor_login">Doctor Login</a>
+            <a href="/clinics" data-t="find_card">Find a Doctor</a>
         </p>
     </footer>
+
+    <script>
+        // Load saved language or default to English
+        let currentLang = localStorage.getItem('tabibak_lang') || 'en';
+
+        function setLang(lang) {
+            currentLang = lang;
+            localStorage.setItem('tabibak_lang', lang);
+            applyTranslations();
+            updateLangButtons();
+            // RTL for Arabic
+            if (lang === 'ar') {
+                document.body.classList.add('rtl');
+                document.getElementById('htmlRoot').setAttribute('dir', 'rtl');
+            } else {
+                document.body.classList.remove('rtl');
+                document.getElementById('htmlRoot').setAttribute('dir', 'ltr');
+            }
+        }
+
+        function applyTranslations() {
+            const t = translations[currentLang];
+            if (!t) return;
+            document.querySelectorAll('[data-t]').forEach(el => {
+                const key = el.getAttribute('data-t');
+                if (t[key]) el.textContent = t[key];
+            });
+        }
+
+        function updateLangButtons() {
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            const langMap = { en: 0, ar: 1, fr: 2, de: 3, zh: 4 };
+            const btns = document.querySelectorAll('.lang-btn');
+            if (btns[langMap[currentLang]]) {
+                btns[langMap[currentLang]].classList.add('active');
+            }
+        }
+
+        // Apply on page load
+        setLang(currentLang);
+    </script>
 
 </body>
 </html>
