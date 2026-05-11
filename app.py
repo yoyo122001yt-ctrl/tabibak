@@ -428,5 +428,48 @@ def reject_doctor(doctor_id):
     conn.close()
     return redirect("/admin")
 
+# ─── REVIEW ROUTES ────────────────────────────────────────
+@app.route("/review/<int:booking_id>")
+def leave_review(booking_id):
+    if "patient_id" not in session:
+        return redirect("/patient/login")
+    conn = sqlite3.connect("tabibak.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM bookings WHERE id = ? AND patient_id = ?",
+                  (booking_id, session["patient_id"]))
+    booking = cursor.fetchone()
+    if not booking:
+        conn.close()
+        return redirect("/my_bookings")
+    cursor.execute("SELECT * FROM clinics WHERE id = ?", (booking[2],))
+    clinic = cursor.fetchone()
+    conn.close()
+    return render_template("leave_review.html", clinic=clinic, booking_id=booking_id, error=None)
+
+@app.route("/review/submit", methods=["POST"])
+def submit_review():
+    if "patient_id" not in session:
+        return redirect("/patient/login")
+    clinic_id = request.form["clinic_id"]
+    booking_id = request.form["booking_id"]
+    rating = request.form.get("rating")
+    comment = request.form["comment"]
+    if not rating:
+        conn = sqlite3.connect("tabibak.db")
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM clinics WHERE id = ?", (clinic_id,))
+        clinic = cursor.fetchone()
+        conn.close()
+        return render_template("leave_review.html", clinic=clinic,
+                             booking_id=booking_id, error="Please select a star rating!")
+    conn = sqlite3.connect("tabibak.db")
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO reviews (patient_id, clinic_id, rating, comment) VALUES (?, ?, ?, ?)",
+                  (session["patient_id"], clinic_id, rating, comment))
+    cursor.execute("UPDATE bookings SET reviewed = 1 WHERE id = ?", (booking_id,))
+    conn.commit()
+    conn.close()
+    return redirect("/my_bookings?reviewed=true")
+
 if __name__ == "__main__":
     app.run(debug=True)

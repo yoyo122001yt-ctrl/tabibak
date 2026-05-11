@@ -59,7 +59,7 @@ cursor.execute("""
     )
 """)
 
-# Bookings table with arrived column
+# Bookings table
 cursor.execute("""
     CREATE TABLE IF NOT EXISTS bookings (
         id INTEGER PRIMARY KEY,
@@ -67,27 +67,36 @@ cursor.execute("""
         clinic_id INTEGER,
         booked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         status TEXT DEFAULT 'waiting',
-        arrived INTEGER DEFAULT 0
+        arrived INTEGER DEFAULT 0,
+        reviewed INTEGER DEFAULT 0
+    )
+""")
+
+# Reviews table
+cursor.execute("""
+    CREATE TABLE IF NOT EXISTS reviews (
+        id INTEGER PRIMARY KEY,
+        patient_id INTEGER,
+        clinic_id INTEGER,
+        rating INTEGER,
+        comment TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
 """)
 
 # Add columns if they don't exist
-for col, definition in [
-    ("latitude", "REAL DEFAULT 0"),
-    ("longitude", "REAL DEFAULT 0"),
-    ("address", "TEXT DEFAULT ''")
+for col, table, definition in [
+    ("latitude", "clinics", "REAL DEFAULT 0"),
+    ("longitude", "clinics", "REAL DEFAULT 0"),
+    ("address", "clinics", "TEXT DEFAULT ''"),
+    ("arrived", "bookings", "INTEGER DEFAULT 0"),
+    ("reviewed", "bookings", "INTEGER DEFAULT 0"),
 ]:
     try:
-        cursor.execute(f"ALTER TABLE clinics ADD COLUMN {col} {definition}")
-        print(f"✅ Added {col} column to clinics!")
+        cursor.execute(f"ALTER TABLE {table} ADD COLUMN {col} {definition}")
+        print(f"✅ Added {col} column to {table}!")
     except:
         pass
-
-try:
-    cursor.execute("ALTER TABLE bookings ADD COLUMN arrived INTEGER DEFAULT 0")
-    print("✅ Added arrived column to bookings!")
-except:
-    pass
 
 # Update existing clinics with GPS coordinates
 cursor.execute("UPDATE clinics SET latitude = 30.0444, longitude = 31.2357, address = 'Cairo, Egypt' WHERE id = 1")
