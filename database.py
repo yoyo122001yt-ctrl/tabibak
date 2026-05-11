@@ -59,33 +59,33 @@ cursor.execute("""
     )
 """)
 
-# Bookings table
+# Bookings table with arrived column
 cursor.execute("""
     CREATE TABLE IF NOT EXISTS bookings (
         id INTEGER PRIMARY KEY,
         patient_id INTEGER,
         clinic_id INTEGER,
         booked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        status TEXT DEFAULT 'waiting'
+        status TEXT DEFAULT 'waiting',
+        arrived INTEGER DEFAULT 0
     )
 """)
 
-# Add GPS columns if they don't exist yet
-try:
-    cursor.execute("ALTER TABLE clinics ADD COLUMN latitude REAL DEFAULT 0")
-    print("✅ Added latitude column!")
-except:
-    pass
+# Add columns if they don't exist
+for col, definition in [
+    ("latitude", "REAL DEFAULT 0"),
+    ("longitude", "REAL DEFAULT 0"),
+    ("address", "TEXT DEFAULT ''")
+]:
+    try:
+        cursor.execute(f"ALTER TABLE clinics ADD COLUMN {col} {definition}")
+        print(f"✅ Added {col} column to clinics!")
+    except:
+        pass
 
 try:
-    cursor.execute("ALTER TABLE clinics ADD COLUMN longitude REAL DEFAULT 0")
-    print("✅ Added longitude column!")
-except:
-    pass
-
-try:
-    cursor.execute("ALTER TABLE clinics ADD COLUMN address TEXT DEFAULT ''")
-    print("✅ Added address column!")
+    cursor.execute("ALTER TABLE bookings ADD COLUMN arrived INTEGER DEFAULT 0")
+    print("✅ Added arrived column to bookings!")
 except:
     pass
 

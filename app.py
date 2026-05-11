@@ -1,6 +1,7 @@
-from flask import Flask, render_template, request, redirect, session
+from flask import Flask, render_template, request, redirect, session, jsonify
 import sqlite3
 import os
+import math
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
@@ -37,6 +38,14 @@ def update_clinic_status(clinic_id, is_open):
     conn.commit()
     conn.close()
 
+def get_distance_km(lat1, lng1, lat2, lng2):
+    R = 6371
+    dlat = math.radians(lat2 - lat1)
+    dlng = math.radians(lng2 - lng1)
+    a = math.sin(dlat/2)**2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dlng/2)**2
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+    return R * c
+
 # ─── MAIN PAGES ───────────────────────────────────────────
 @app.route("/")
 def home():
@@ -54,16 +63,13 @@ def book_clinic(clinic_id):
         return redirect("/patient/login")
     conn = sqlite3.connect("tabibak.db")
     cursor = conn.cursor()
-    # Check if patient already booked this clinic
     cursor.execute("SELECT * FROM bookings WHERE patient_id = ? AND clinic_id = ? AND status = 'waiting'",
                   (session["patient_id"], clinic_id))
     existing = cursor.fetchone()
     if existing:
         conn.close()
         return redirect(f"/booking/confirm/{clinic_id}?already=true")
-    # Add patient to queue
     cursor.execute("UPDATE clinics SET patients_waiting = patients_waiting + 1 WHERE id = ?", (clinic_id,))
-    # Save booking
     cursor.execute("INSERT INTO bookings (patient_id, clinic_id) VALUES (?, ?)",
                   (session["patient_id"], clinic_id))
     conn.commit()
@@ -81,8 +87,7 @@ def booking_confirm(clinic_id):
     clinic = cursor.fetchone()
     cursor.execute("SELECT * FROM patients WHERE id = ?", (session["patient_id"],))
     patient = cursor.fetchone()
-    cursor.execute("SELECT COUNT(*) FROM bookings WHERE clinic_id = ? AND status = 'waiting'",
-                  (clinic_id,))
+    cursor.execute("SELECT COUNT(*) FROM bookings WHERE clinic_id = ? AND status = 'waiting'", (clinic_id,))
     queue_position = cursor.fetchone()[0]
     conn.close()
     wait_time = clinic[4] * clinic[5]
@@ -92,6 +97,70 @@ def booking_confirm(clinic_id):
         wait_time=wait_time,
         queue_position=queue_position,
         already=already)
+
+# ─── AUTO ARRIVE ──────────────────────────────────────────
+@app.route("/api/check_arrival", methods=["POST"])
+def check_arrival():
+    if "patient_id" not in session:
+        return jsonify({"error": "not logged in"}), 401
+
+    data = request.get_json()
+    patient_lat = data.get("lat")
+    patient_lng = data.get("lng")
+
+    if not patient_lat or not patient_lng:
+        return jsonify({"error": "no location"}), 400
+
+    conn = sqlite3.connect("tabibak.db")
+    cursor = conn.cursor()
+
+    # Get patient's active bookings
+    cursor.execute("""
+        SELECT bookings.id, bookings.clinic_id, clinics.latitude, clinics.longitude, clinics.name
+        FROM bookings
+        JOIN clinics ON bookings.clinic_id = clinics.id
+        WHERE bookings.patient_id = ? AND bookings.status = 'waiting' AND bookings.arrived = 0
+    """, (session["patient_id"],))
+    bookings = cursor.fetchall()
+
+    arrived_clinics = []
+    for booking in bookings:
+        booking_id, clinic_id, clinic_lat, clinic_lng, clinic_name = booking
+        if clinic_lat and clinic_lng:
+            distance = get_distance_km(patient_lat, patient_lng, clinic_lat, clinic_lng)
+            # If within 200 meters
+            if distance <= 0.2:
+                cursor.execute("UPDATE bookings SET arrived = 1 WHERE id = ?", (booking_id,))
+                arrived_clinics.append({
+                    "clinic_id": clinic_id,
+                    "clinic_name": clinic_name,
+                    "distance_m": round(distance * 1000)
+                })
+
+    conn.commit()
+    conn.close()
+
+    return jsonify({"arrived": arrived_clinics})
+
+@app.route("/my_bookings")
+def my_bookings():
+    if "patient_id" not in session:
+        return redirect("/patient/login")
+    conn = sqlite3.connect("tabibak.db")
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT bookings.*, clinics.name, clinics.doctor, clinics.patients_waiting,
+               clinics.minutes_per_patient, clinics.latitude, clinics.longitude
+        FROM bookings
+        JOIN clinics ON bookings.clinic_id = clinics.id
+        WHERE bookings.patient_id = ? AND bookings.status = 'waiting'
+        ORDER BY bookings.booked_at DESC
+    """, (session["patient_id"],))
+    bookings = cursor.fetchall()
+    cursor.execute("SELECT * FROM patients WHERE id = ?", (session["patient_id"],))
+    patient = cursor.fetchone()
+    conn.close()
+    return render_template("my_bookings.html", bookings=bookings, patient=patient)
 
 # ─── DOCTOR ROUTES ────────────────────────────────────────
 @app.route("/doctor/register", methods=["GET", "POST"])
@@ -152,8 +221,21 @@ def doctor_dashboard():
         GROUP BY patients.id
     """)
     patients = cursor.fetchall()
+    # Get arrived patients
+    cursor.execute("""
+        SELECT patients.name, patients.phone, bookings.booked_at
+        FROM bookings
+        JOIN patients ON bookings.patient_id = patients.id
+        WHERE bookings.clinic_id = ? AND bookings.arrived = 1 AND bookings.status = 'waiting'
+        ORDER BY bookings.booked_at DESC
+    """, (session["clinic_id"],))
+    arrived_patients = cursor.fetchall()
     conn.close()
-    return render_template("doctor_dashboard.html", doctor=session["doctor_name"], clinic=clinic, patients=patients)
+    return render_template("doctor_dashboard.html",
+        doctor=session["doctor_name"],
+        clinic=clinic,
+        patients=patients,
+        arrived_patients=arrived_patients)
 
 @app.route("/doctor/patient/<int:patient_id>")
 def doctor_view_patient(patient_id):
@@ -253,8 +335,16 @@ def patient_profile():
     patient = cursor.fetchone()
     cursor.execute("SELECT * FROM medical_documents WHERE patient_id = ?", (session["patient_id"],))
     documents = cursor.fetchall()
+    cursor.execute("""
+        SELECT bookings.*, clinics.name, clinics.doctor, clinics.patients_waiting, clinics.minutes_per_patient
+        FROM bookings
+        JOIN clinics ON bookings.clinic_id = clinics.id
+        WHERE bookings.patient_id = ? AND bookings.status = 'waiting'
+        ORDER BY bookings.booked_at DESC
+    """, (session["patient_id"],))
+    bookings = cursor.fetchall()
     conn.close()
-    return render_template("patient_profile.html", patient=patient, documents=documents, success=None)
+    return render_template("patient_profile.html", patient=patient, documents=documents, success=None, bookings=bookings)
 
 @app.route("/patient/upload", methods=["POST"])
 def patient_upload():
