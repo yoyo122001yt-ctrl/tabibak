@@ -4,7 +4,7 @@ import os
 conn = sqlite3.connect("tabibak.db")
 cursor = conn.cursor()
 
-# Clinics table
+# Clinics table with GPS
 cursor.execute("""
     CREATE TABLE IF NOT EXISTS clinics (
         id INTEGER PRIMARY KEY,
@@ -13,7 +13,10 @@ cursor.execute("""
         specialty TEXT,
         patients_waiting INTEGER,
         minutes_per_patient INTEGER,
-        is_open INTEGER
+        is_open INTEGER,
+        latitude REAL DEFAULT 0,
+        longitude REAL DEFAULT 0,
+        address TEXT DEFAULT ''
     )
 """)
 
@@ -67,15 +70,39 @@ cursor.execute("""
     )
 """)
 
+# Add GPS columns if they don't exist yet
+try:
+    cursor.execute("ALTER TABLE clinics ADD COLUMN latitude REAL DEFAULT 0")
+    print("✅ Added latitude column!")
+except:
+    pass
+
+try:
+    cursor.execute("ALTER TABLE clinics ADD COLUMN longitude REAL DEFAULT 0")
+    print("✅ Added longitude column!")
+except:
+    pass
+
+try:
+    cursor.execute("ALTER TABLE clinics ADD COLUMN address TEXT DEFAULT ''")
+    print("✅ Added address column!")
+except:
+    pass
+
+# Update existing clinics with GPS coordinates
+cursor.execute("UPDATE clinics SET latitude = 30.0444, longitude = 31.2357, address = 'Cairo, Egypt' WHERE id = 1")
+cursor.execute("UPDATE clinics SET latitude = 30.0626, longitude = 31.2497, address = 'Heliopolis, Cairo' WHERE id = 2")
+cursor.execute("UPDATE clinics SET latitude = 29.9792, longitude = 30.9256, address = '6th of October, Giza' WHERE id = 3")
+
 # Only add sample data if clinics table is empty
 cursor.execute("SELECT COUNT(*) FROM clinics")
 count = cursor.fetchone()[0]
 
 if count == 0:
     print("Adding sample data...")
-    cursor.execute("INSERT INTO clinics VALUES (1, 'Clinic Youssef', 'Dr. Ahmed', 'General', 3, 15, 1)")
-    cursor.execute("INSERT INTO clinics VALUES (2, 'Nile Medical', 'Dr. Sara', 'Cardiology', 6, 20, 1)")
-    cursor.execute("INSERT INTO clinics VALUES (3, 'October Clinic', 'Dr. Mona', 'Pediatrics', 2, 10, 0)")
+    cursor.execute("INSERT INTO clinics VALUES (1, 'Clinic Youssef', 'Dr. Ahmed', 'General', 3, 15, 1, 30.0444, 31.2357, 'Cairo, Egypt')")
+    cursor.execute("INSERT INTO clinics VALUES (2, 'Nile Medical', 'Dr. Sara', 'Cardiology', 6, 20, 1, 30.0626, 31.2497, 'Heliopolis, Cairo')")
+    cursor.execute("INSERT INTO clinics VALUES (3, 'October Clinic', 'Dr. Mona', 'Pediatrics', 2, 10, 0, 29.9792, 30.9256, '6th of October, Giza')")
     cursor.execute("INSERT INTO doctors VALUES (1, 'Dr. Ahmed', 'ahmed@tabibak.com', 'ahmed123', 1, 0, '01000000001', 'General', 'approved')")
     cursor.execute("INSERT INTO doctors VALUES (2, 'Dr. Sara', 'sara@tabibak.com', 'sara123', 2, 0, '01000000002', 'Cardiology', 'approved')")
     cursor.execute("INSERT INTO doctors VALUES (3, 'Dr. Mona', 'mona@tabibak.com', 'mona123', 3, 0, '01000000003', 'Pediatrics', 'approved')")

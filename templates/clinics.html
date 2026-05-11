@@ -25,11 +25,63 @@
             text-align: center;
         }
         .hero h1 { font-size: 36px; margin-bottom: 10px; }
-        .hero p { font-size: 18px; opacity: 0.9; }
+        .hero p { font-size: 18px; opacity: 0.9; margin-bottom: 20px; }
+
+        .location-btn {
+            background: white;
+            color: #0ea5e9;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .location-btn:hover { transform: scale(1.05); }
+
+        .location-status {
+            margin-top: 15px;
+            font-size: 14px;
+            opacity: 0.9;
+            min-height: 20px;
+        }
+
+        .filter-bar {
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 0 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .filter-bar select {
+            padding: 10px 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 50px;
+            font-size: 14px;
+            outline: none;
+            background: white;
+            cursor: pointer;
+        }
+        .filter-bar select:focus { border-color: #0ea5e9; }
+        .sort-btn {
+            padding: 10px 20px;
+            border: 2px solid #0ea5e9;
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: bold;
+            color: #0ea5e9;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .sort-btn.active { background: #0ea5e9; color: white; }
 
         .clinics-container {
             max-width: 900px;
-            margin: 40px auto;
+            margin: 20px auto;
             padding: 0 20px;
         }
 
@@ -44,12 +96,26 @@
             align-items: center;
             flex-wrap: wrap;
             gap: 15px;
+            transition: transform 0.2s;
         }
+        .clinic-card:hover { transform: translateY(-2px); }
 
         .clinic-info h2 { font-size: 22px; color: #0284c7; margin-bottom: 5px; }
-        .clinic-info p { color: #666; margin-bottom: 3px; }
+        .clinic-info p { color: #666; margin-bottom: 3px; font-size: 14px; }
+        .clinic-info .address { color: #999; font-size: 13px; }
+        .distance-badge {
+            display: inline-block;
+            background: #f0f9ff;
+            color: #0ea5e9;
+            padding: 3px 10px;
+            border-radius: 50px;
+            font-size: 13px;
+            font-weight: bold;
+            margin-top: 5px;
+            border: 1px solid #bae6fd;
+        }
 
-        .clinic-status { text-align: center; }
+        .clinic-status { text-align: center; min-width: 150px; }
 
         .status-open {
             background: #dcfce7;
@@ -88,9 +154,31 @@
         }
         .book-btn:hover { background: #0284c7; }
 
+        .map-btn {
+            background: #f0f9ff;
+            color: #0ea5e9;
+            padding: 8px 15px;
+            border-radius: 50px;
+            border: 1px solid #bae6fd;
+            font-size: 13px;
+            cursor: pointer;
+            display: inline-block;
+            margin-top: 5px;
+            text-decoration: none;
+            transition: background 0.2s;
+        }
+        .map-btn:hover { background: #e0f2fe; }
+
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+            font-size: 18px;
+        }
+
         footer { text-align: center; padding: 20px; color: #999; font-size: 14px; }
 
-        /* POPUP OVERLAY */
+        /* CONFIRM POPUP */
         .overlay {
             display: none;
             position: fixed;
@@ -103,7 +191,6 @@
         }
         .overlay.active { display: flex; }
 
-        /* CONFIRM POPUP */
         .popup {
             background: white;
             border-radius: 20px;
@@ -119,10 +206,10 @@
         }
         .popup-icon { font-size: 60px; margin-bottom: 15px; }
         .popup h2 { font-size: 24px; margin-bottom: 10px; }
-        .popup p { color: #666; margin-bottom: 20px; font-size: 15px; line-height: 1.6; }
+        .popup p { color: #666; margin-bottom: 20px; font-size: 15px; }
         .popup-clinic { background: #f0f9ff; border-radius: 12px; padding: 15px; margin-bottom: 20px; }
         .popup-clinic h3 { color: #0284c7; font-size: 18px; }
-        .popup-clinic p { color: #555; font-size: 14px; margin: 0; }
+        .popup-clinic p { color: #555; font-size: 14px; margin: 3px 0; }
         .popup-btns { display: flex; gap: 10px; justify-content: center; }
         .popup-btns button {
             padding: 12px 25px;
@@ -149,12 +236,7 @@
         }
         .payment-popup h2 { font-size: 22px; margin-bottom: 5px; }
         .payment-popup .subtitle { color: #999; margin-bottom: 25px; font-size: 14px; }
-        .payment-methods {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            justify-content: center;
-        }
+        .payment-methods { display: flex; gap: 10px; margin-bottom: 20px; justify-content: center; }
         .pay-method {
             border: 2px solid #e2e8f0;
             border-radius: 12px;
@@ -169,7 +251,6 @@
         .pay-method:hover { border-color: #0ea5e9; color: #0ea5e9; }
         .pay-method.selected { border-color: #0ea5e9; background: #f0f9ff; color: #0ea5e9; }
         .pay-method .method-icon { font-size: 28px; display: block; margin-bottom: 5px; }
-
         .input-group { margin-bottom: 15px; text-align: left; }
         .input-group label { display: block; margin-bottom: 6px; font-weight: 600; color: #333; font-size: 14px; }
         .input-group input {
@@ -183,7 +264,6 @@
         .input-group input:focus { border-color: #0ea5e9; }
         .row { display: flex; gap: 10px; }
         .row .input-group { flex: 1; }
-
         .price-box {
             background: #f8fafc;
             border-radius: 12px;
@@ -195,7 +275,6 @@
         }
         .price-box span { color: #666; font-size: 15px; }
         .price-box strong { font-size: 22px; color: #0ea5e9; }
-
         .pay-btn {
             width: 100%;
             padding: 14px;
@@ -206,39 +285,65 @@
             font-size: 17px;
             font-weight: bold;
             cursor: pointer;
-            transition: background 0.2s;
         }
         .pay-btn:hover { background: #0284c7; }
-        .skip-link {
-            display: block;
-            margin-top: 12px;
-            color: #999;
-            font-size: 13px;
-            cursor: pointer;
-            text-decoration: underline;
-        }
+        .skip-link { display: block; margin-top: 12px; color: #999; font-size: 13px; cursor: pointer; text-decoration: underline; }
     </style>
 </head>
 <body>
 
     <nav>
         <div class="logo">Tabibak طبيبك</div>
-        <a href="/" style="color: #0ea5e9; text-decoration: none;">← Back to Home</a>
+        <a href="/" style="color: #0ea5e9; text-decoration: none; font-weight:600;">← Back to Home</a>
     </nav>
 
     <div class="hero">
         <h1>🏥 Available Doctors Near You</h1>
         <p>Real-time wait times updated automatically</p>
+        <button class="location-btn" onclick="getLocation()">
+            📍 Find Doctors Near Me
+        </button>
+        <div class="location-status" id="locationStatus"></div>
     </div>
 
-    <div class="clinics-container">
+    <div class="filter-bar">
+        <span style="font-weight:600; color:#555;">Filter:</span>
+        <select id="specialtyFilter" onchange="filterClinics()">
+            <option value="all">All Specialties</option>
+            <option value="General">General Practice</option>
+            <option value="Cardiology">Cardiology</option>
+            <option value="Pediatrics">Pediatrics</option>
+            <option value="Dermatology">Dermatology</option>
+            <option value="Orthopedics">Orthopedics</option>
+        </select>
+        <select id="statusFilter" onchange="filterClinics()">
+            <option value="all">All Status</option>
+            <option value="open">Open Only</option>
+            <option value="closed">Closed Only</option>
+        </select>
+        <button class="sort-btn active" id="sortNearest" onclick="sortByNearest()">📍 Nearest First</button>
+        <button class="sort-btn" id="sortWait" onclick="sortByWait()">⏱️ Shortest Wait</button>
+    </div>
+
+    <div class="clinics-container" id="clinicsContainer">
         {% for clinic in clinics %}
-        <div class="clinic-card">
+        <div class="clinic-card"
+             data-id="{{ clinic[0] }}"
+             data-specialty="{{ clinic[3] }}"
+             data-status="{{ 'open' if clinic[6] == 1 else 'closed' }}"
+             data-wait="{{ clinic[4] * clinic[5] }}"
+             data-lat="{{ clinic[7] }}"
+             data-lng="{{ clinic[8] }}"
+             data-distance="999999">
             <div class="clinic-info">
                 <h2>{{ clinic[1] }}</h2>
                 <p>👨‍⚕️ {{ clinic[2] }}</p>
                 <p>🩺 {{ clinic[3] }}</p>
                 <p>👥 {{ clinic[4] }} patients waiting</p>
+                {% if clinic[9] %}
+                <p class="address">📍 {{ clinic[9] }}</p>
+                {% endif %}
+                <span class="distance-badge" id="dist-{{ clinic[0] }}">📍 Location unknown</span>
             </div>
             <div class="clinic-status">
                 {% if clinic[6] == 1 %}
@@ -253,6 +358,9 @@
                         Book Now
                     </button>
                 {% endif %}
+                <br>
+                <a href="https://www.google.com/maps?q={{ clinic[7] }},{{ clinic[8] }}"
+                   target="_blank" class="map-btn">🗺️ Open in Maps</a>
             </div>
         </div>
         {% endfor %}
@@ -283,28 +391,21 @@
         <div class="payment-popup">
             <h2>💳 Booking Fee</h2>
             <p class="subtitle">Pay a small fee to confirm your appointment</p>
-
             <div class="price-box">
                 <span>Appointment booking fee</span>
                 <strong>50 EGP</strong>
             </div>
-
             <div class="payment-methods">
                 <div class="pay-method selected" onclick="selectMethod(this, 'card')">
-                    <span class="method-icon">💳</span>
-                    Card
+                    <span class="method-icon">💳</span>Card
                 </div>
                 <div class="pay-method" onclick="selectMethod(this, 'vodafone')">
-                    <span class="method-icon">📱</span>
-                    Vodafone Cash
+                    <span class="method-icon">📱</span>Vodafone Cash
                 </div>
                 <div class="pay-method" onclick="selectMethod(this, 'instapay')">
-                    <span class="method-icon">🏦</span>
-                    InstaPay
+                    <span class="method-icon">🏦</span>InstaPay
                 </div>
             </div>
-
-            <!-- Card Fields -->
             <div id="cardFields">
                 <div class="input-group">
                     <label>Card Number</label>
@@ -321,23 +422,18 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Vodafone Fields -->
             <div id="vodafoneFields" style="display:none;">
                 <div class="input-group">
                     <label>Vodafone Cash Number</label>
                     <input type="text" placeholder="01xxxxxxxxx">
                 </div>
             </div>
-
-            <!-- InstaPay Fields -->
             <div id="instapayFields" style="display:none;">
                 <div class="input-group">
                     <label>InstaPay Username</label>
                     <input type="text" placeholder="your instapay username">
                 </div>
             </div>
-
             <button class="pay-btn" onclick="confirmPayment()">💳 Pay & Confirm Booking</button>
             <span class="skip-link" onclick="skipPayment()">Skip payment and book anyway</span>
         </div>
@@ -345,8 +441,100 @@
 
     <script>
         let selectedClinicId = null;
-        let selectedMethod = 'card';
+        let userLat = null;
+        let userLng = null;
 
+        // ─── GPS ──────────────────────────────────────────
+        function getLocation() {
+            const status = document.getElementById('locationStatus');
+            status.textContent = '🔍 Getting your location...';
+
+            if (!navigator.geolocation) {
+                status.textContent = '❌ GPS not supported by your browser';
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    userLat = position.coords.latitude;
+                    userLng = position.coords.longitude;
+                    status.textContent = '✅ Location found! Showing nearest doctors...';
+                    calculateDistances();
+                    sortByNearest();
+                },
+                function(error) {
+                    status.textContent = '❌ Could not get location. Please allow location access.';
+                }
+            );
+        }
+
+        function calculateDistances() {
+            const cards = document.querySelectorAll('.clinic-card');
+            cards.forEach(card => {
+                const lat = parseFloat(card.dataset.lat);
+                const lng = parseFloat(card.dataset.lng);
+                if (lat && lng && userLat && userLng) {
+                    const dist = getDistanceKm(userLat, userLng, lat, lng);
+                    card.dataset.distance = dist;
+                    const distEl = document.getElementById('dist-' + card.dataset.id);
+                    if (distEl) {
+                        if (dist < 1) {
+                            distEl.textContent = '📍 ' + Math.round(dist * 1000) + ' meters away';
+                        } else {
+                            distEl.textContent = '📍 ' + dist.toFixed(1) + ' km away';
+                        }
+                    }
+                }
+            });
+        }
+
+        function getDistanceKm(lat1, lng1, lat2, lng2) {
+            const R = 6371;
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLng = (lng2 - lng1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                      Math.sin(dLng/2) * Math.sin(dLng/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c;
+        }
+
+        // ─── SORT ─────────────────────────────────────────
+        function sortByNearest() {
+            document.getElementById('sortNearest').classList.add('active');
+            document.getElementById('sortWait').classList.remove('active');
+            sortCards('distance');
+        }
+
+        function sortByWait() {
+            document.getElementById('sortWait').classList.add('active');
+            document.getElementById('sortNearest').classList.remove('active');
+            sortCards('wait');
+        }
+
+        function sortCards(by) {
+            const container = document.getElementById('clinicsContainer');
+            const cards = Array.from(container.querySelectorAll('.clinic-card'));
+            cards.sort((a, b) => {
+                if (by === 'distance') return parseFloat(a.dataset.distance) - parseFloat(b.dataset.distance);
+                if (by === 'wait') return parseFloat(a.dataset.wait) - parseFloat(b.dataset.wait);
+            });
+            cards.forEach(card => container.appendChild(card));
+        }
+
+        // ─── FILTER ───────────────────────────────────────
+        function filterClinics() {
+            const specialty = document.getElementById('specialtyFilter').value;
+            const status = document.getElementById('statusFilter').value;
+            const cards = document.querySelectorAll('.clinic-card');
+            cards.forEach(card => {
+                const matchSpecialty = specialty === 'all' || card.dataset.specialty === specialty;
+                const matchStatus = status === 'all' || card.dataset.status === status;
+                card.style.display = matchSpecialty && matchStatus ? 'flex' : 'none';
+            });
+        }
+
+        // ─── BOOKING ──────────────────────────────────────
         function showConfirm(clinicId, clinicName, doctorName, waitTime) {
             selectedClinicId = clinicId;
             document.getElementById('popupClinicName').textContent = clinicName;
@@ -365,7 +553,6 @@
         }
 
         function selectMethod(el, method) {
-            selectedMethod = method;
             document.querySelectorAll('.pay-method').forEach(m => m.classList.remove('selected'));
             el.classList.add('selected');
             document.getElementById('cardFields').style.display = method === 'card' ? 'block' : 'none';
