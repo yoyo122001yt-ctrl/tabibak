@@ -54,7 +54,21 @@ def home():
 @app.route("/clinics")
 def clinics():
     data = get_clinics()
-    return render_template("clinics.html", clinics=data)
+    conn = sqlite3.connect("tabibak.db")
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT clinic_id,
+               ROUND(AVG(rating), 1) as avg_rating,
+               COUNT(*) as review_count
+        FROM reviews
+        GROUP BY clinic_id
+    """)
+    reviews_data = cursor.fetchall()
+    conn.close()
+    reviews = {}
+    for r in reviews_data:
+        reviews[r[0]] = {"avg": r[1], "count": r[2]}
+    return render_template("clinics.html", clinics=data, reviews=reviews)
 
 # ─── BOOKING ROUTES ───────────────────────────────────────
 @app.route("/book/<int:clinic_id>")

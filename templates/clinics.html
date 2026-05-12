@@ -335,16 +335,24 @@
              data-lat="{{ clinic[7] }}"
              data-lng="{{ clinic[8] }}"
              data-distance="999999">
-            <div class="clinic-info">
-                <h2>{{ clinic[1] }}</h2>
-                <p>👨‍⚕️ {{ clinic[2] }}</p>
-                <p>🩺 {{ clinic[3] }}</p>
-                <p>👥 {{ clinic[4] }} patients waiting</p>
-                {% if clinic[9] %}
-                <p class="address">📍 {{ clinic[9] }}</p>
-                {% endif %}
-                <span class="distance-badge" id="dist-{{ clinic[0] }}">📍 Location unknown</span>
-            </div>
+             <div class="clinic-info">
+              <h2>{{ clinic[1] }}</h2>
+               <p>👨‍⚕️ {{ clinic[2] }}</p>
+               <p>🩺 {{ clinic[3] }}</p>
+       <p>👥 {{ clinic[4] }} patients waiting</p>
+         {% if clinic[9] %}
+        <p class="address">📍 {{ clinic[9] }}</p>
+         {% endif %}
+        {% if reviews[clinic[0]] %}
+         <p style="color:#fbbf24; font-size:15px; margin-top:5px;">
+        ⭐ {{ reviews[clinic[0]]['avg'] }}/5
+         <span style="color:#999; font-size:13px;">({{ reviews[clinic[0]]['count'] }} reviews)</span>
+    </p>
+    {% else %}
+    <p style="color:#999; font-size:13px; margin-top:5px;">⭐ No reviews yet</p>
+    {% endif %}
+    <span class="distance-badge" id="dist-{{ clinic[0] }}">📍 Location unknown</span>
+        </div>
             <div class="clinic-status">
                 {% if clinic[6] == 1 %}
                     <div class="status-open">🟢 Open</div>
