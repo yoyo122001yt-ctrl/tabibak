@@ -11,15 +11,24 @@ app = Flask(__name__)
 # Use environment variable for secret key in production
 app.secret_key = os.environ.get("SECRET_KEY", "tabibak_secret_123")
 
-UPLOAD_FOLDER = "static/uploads"
+UPLOAD_FOLDER = os.path.join("static", "uploads")
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "pdf"}
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024  # 16MB upload limit
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 # ============ HELPER FUNCTIONS ============
 
 def allowed_file(filename):
-    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+    return filename and "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+def safe_int(value, default=None):
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return default
+
 
 def get_db():
     """Get database connection with row factory for named columns"""
@@ -59,7 +68,7 @@ def update_clinic_status(clinic_id, is_open):
     conn.close()
 
 def get_distance_km(lat1, lng1, lat2, lng2):
-    if not lat1 or not lng1 or not lat2 or not lng2:
+    if lat1 is None or lng1 is None or lat2 is None or lng2 is None:
         return 999
     R = 6371
     dlat = math.radians(lat2 - lat1)
@@ -189,7 +198,7 @@ def my_bookings():
                bookings.reviewed
         FROM bookings
         JOIN clinics ON bookings.clinic_id = clinics.id
-        WHERE bookings.patient_id = ? AND bookings.status = 'waiting'
+        WHERE bookings.patient_id = ? AND bookings.status IN ('waiting', 'completed')
         ORDER BY bookings.booked_at DESC
     """, (session["patient_id"],))
     bookings = cursor.fetchall()
@@ -207,7 +216,7 @@ def check_arrival():
     patient_lat = data.get("lat")
     patient_lng = data.get("lng")
 
-    if not patient_lat or not patient_lng:
+    if patient_lat is None or patient_lng is None:
         return jsonify({"error": "no location"}), 400
 
     conn = get_db()
@@ -223,7 +232,7 @@ def check_arrival():
 
     arrived_clinics = []
     for booking in bookings:
-        if booking['latitude'] and booking['longitude']:
+        if booking['latitude'] is not None and booking['longitude'] is not None:
             distance = get_distance_km(patient_lat, patient_lng, booking['latitude'], booking['longitude'])
             if distance <= 0.2:  # Within 200 meters
                 cursor.execute("UPDATE bookings SET arrived = 1 WHERE id = ?", (booking['id'],))
@@ -242,14 +251,20 @@ def check_arrival():
 @app.route("/doctor/register", methods=["GET", "POST"])
 def doctor_register():
     if request.method == "POST":
-        name = request.form["name"]
-        email = request.form["email"]
-        password = request.form["password"]
-        phone = request.form["phone"]
-        clinic_name = request.form["clinic_name"]
-        specialty = request.form["specialty"]
-        minutes_per_patient = request.form["minutes_per_patient"]
+        name = request.form.get("name", "").strip()
+        email = request.form.get("email", "").strip().lower()
+        password = request.form.get("password", "")
+        phone = request.form.get("phone", "").strip()
+        clinic_name = request.form.get("clinic_name", "").strip()
+        specialty = request.form.get("specialty", "").strip()
+        minutes_per_patient = safe_int(request.form.get("minutes_per_patient"), 15)
         
+        if not name or not email or not password or not clinic_name or not specialty:
+            return render_template("doctor_register.html", error="All fields are required.", success=False)
+
+        if minutes_per_patient <= 0:
+            minutes_per_patient = 15
+
         conn = get_db()
         cursor = conn.cursor()
         
@@ -283,8 +298,8 @@ def doctor_register():
 @app.route("/doctor/login", methods=["GET", "POST"])
 def doctor_login():
     if request.method == "POST":
-        email = request.form["email"]
-        password = request.form["password"]
+        email = request.form.get("email", "").strip().lower()
+        password = request.form.get("password", "")
         
         doctor = get_doctor_by_email(email)
         
@@ -311,11 +326,12 @@ def doctor_dashboard():
     cursor.execute("SELECT * FROM clinics WHERE id = ?", (session["clinic_id"],))
     clinic = cursor.fetchone()
     
-    # Get patients with documents
+    # Get patients for this clinic only
     cursor.execute("""
         SELECT DISTINCT patients.* FROM patients
-        JOIN medical_documents ON patients.id = medical_documents.patient_id
-    """)
+        JOIN bookings ON bookings.patient_id = patients.id
+        WHERE bookings.clinic_id = ?
+    """, (session["clinic_id"],))
     patients = cursor.fetchall()
     
     # Get arrived patients waiting
@@ -346,8 +362,15 @@ def doctor_dashboard():
 def doctor_view_patient(patient_id):
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM patients WHERE id = ?", (patient_id,))
+    cursor.execute("""
+        SELECT patients.* FROM patients
+        JOIN bookings ON bookings.patient_id = patients.id
+        WHERE patients.id = ? AND bookings.clinic_id = ?
+    """, (patient_id, session["clinic_id"]))
     patient = cursor.fetchone()
+    if not patient:
+        conn.close()
+        return redirect("/doctor/dashboard")
     cursor.execute("SELECT * FROM medical_documents WHERE patient_id = ?", (patient_id,))
     documents = cursor.fetchall()
     conn.close()
@@ -402,13 +425,16 @@ def doctor_logout():
 @app.route("/patient/register", methods=["GET", "POST"])
 def patient_register():
     if request.method == "POST":
-        name = request.form["name"]
-        email = request.form["email"]
-        password = request.form["password"]
-        age = request.form["age"]
-        blood_type = request.form["blood_type"]
-        phone = request.form["phone"]
+        name = request.form.get("name", "").strip()
+        email = request.form.get("email", "").strip().lower()
+        password = request.form.get("password", "")
+        age = safe_int(request.form.get("age"), None)
+        blood_type = request.form.get("blood_type", "").strip()
+        phone = request.form.get("phone", "").strip()
         
+        if not name or not email or not password or age is None or not blood_type or not phone:
+            return render_template("patient_register.html", error="All fields are required!")
+
         conn = get_db()
         cursor = conn.cursor()
         
@@ -437,8 +463,8 @@ def patient_register():
 @app.route("/patient/login", methods=["GET", "POST"])
 def patient_login():
     if request.method == "POST":
-        email = request.form["email"]
-        password = request.form["password"]
+        email = request.form.get("email", "").strip().lower()
+        password = request.form.get("password", "")
         
         patient = get_patient_by_email(email)
         
@@ -474,14 +500,17 @@ def patient_profile():
 @app.route("/patient/upload", methods=["POST"])
 @login_required('patient')
 def patient_upload():
-    description = request.form["description"]
-    file = request.files["document"]
+    description = request.form.get("description", "").strip()
+    file = request.files.get("document")
+    if not file or file.filename == "":
+        return redirect("/patient/profile")
+
     if file and allowed_file(file.filename):
         filename = secure_filename(file.filename)
-        # Add timestamp to prevent overwriting
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         unique_filename = f"{session['patient_id']}_{timestamp}_{filename}"
-        file.save(os.path.join(app.config["UPLOAD_FOLDER"], unique_filename))
+        file_path = os.path.join(app.config["UPLOAD_FOLDER"], unique_filename)
+        file.save(file_path)
         
         conn = get_db()
         cursor = conn.cursor()
@@ -569,7 +598,7 @@ def admin_logout():
 def leave_review(booking_id):
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM bookings WHERE id = ? AND patient_id = ?",
+    cursor.execute("SELECT * FROM bookings WHERE id = ? AND patient_id = ? AND status = 'completed' AND reviewed = 0",
                   (booking_id, session["patient_id"]))
     booking = cursor.fetchone()
     if not booking:
@@ -583,22 +612,25 @@ def leave_review(booking_id):
 @app.route("/review/submit", methods=["POST"])
 @login_required('patient')
 def submit_review():
-    clinic_id = request.form["clinic_id"]
-    booking_id = request.form["booking_id"]
-    rating = request.form.get("rating")
-    comment = request.form["comment"]
-    
-    if not rating:
+    clinic_id = safe_int(request.form.get("clinic_id"))
+    booking_id = safe_int(request.form.get("booking_id"))
+    rating = safe_int(request.form.get("rating"))
+    comment = request.form.get("comment", "").strip()
+
+    if not clinic_id or not booking_id or not rating:
         conn = get_db()
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM clinics WHERE id = ?", (clinic_id,))
-        clinic = cursor.fetchone()
         conn.close()
-        return render_template("leave_review.html", clinic=clinic,
-                             booking_id=booking_id, error="Please select a star rating!")
-    
+        return redirect("/my_bookings")
+
     conn = get_db()
     cursor = conn.cursor()
+    cursor.execute("SELECT * FROM bookings WHERE id = ? AND patient_id = ? AND status = 'completed' AND reviewed = 0",
+                  (booking_id, session["patient_id"]))
+    booking = cursor.fetchone()
+    if not booking or booking['clinic_id'] != clinic_id:
+        conn.close()
+        return redirect("/my_bookings")
+
     cursor.execute("INSERT INTO reviews (patient_id, clinic_id, rating, comment, created_at) VALUES (?, ?, ?, ?, ?)",
                   (session["patient_id"], clinic_id, rating, comment, datetime.now()))
     cursor.execute("UPDATE bookings SET reviewed = 1 WHERE id = ?", (booking_id,))

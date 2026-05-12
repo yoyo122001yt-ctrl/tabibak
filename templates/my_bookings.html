@@ -1,373 +1,388 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tabibak - My Bookings</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', sans-serif; background: #f0f9ff; color: #333; }
+{% extends 'base.html' %}
+{% block title %}My Bookings - Tabibak{% endblock %}
 
-        nav {
-            background: white;
-            padding: 15px 40px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        .logo { font-size: 24px; font-weight: bold; color: #0ea5e9; }
-        .nav-links { display: flex; gap: 10px; flex-wrap: wrap; }
-        .nav-link {
-            padding: 8px 18px;
-            border-radius: 50px;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 14px;
-            transition: transform 0.2s;
-        }
-        .nav-link:hover { transform: scale(1.05); }
-        .nav-link-blue { background: #f0f9ff; color: #0ea5e9; border: 1px solid #bae6fd; }
-        .nav-link-outline { border: 2px solid #0ea5e9; color: #0ea5e9; }
+{% block extra_head %}
+<style>
+    .bookings-hero {
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        color: white;
+        padding: 80px 40px;
+        text-align: center;
+        border-radius: 0 0 40px 40px;
+        margin-top: 70px;
+        position: relative;
+        overflow: hidden;
+    }
+    .bookings-hero::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at center, rgba(255,255,255,0.1) 0%, transparent 70%);
+    }
+    .bookings-hero h1 {
+        font-family: 'Syne', sans-serif;
+        font-size: 36px;
+        font-weight: 800;
+        margin-bottom: 10px;
+        position: relative;
+    }
+    .bookings-hero p {
+        font-size: 18px;
+        opacity: 0.9;
+        position: relative;
+    }
 
-        .hero {
-            background: linear-gradient(135deg, #0ea5e9, #0284c7);
-            color: white;
-            padding: 40px;
-            text-align: center;
-        }
-        .hero h1 { font-size: 30px; margin-bottom: 10px; }
-        .hero p { opacity: 0.9; }
+    .card {
+        background: white;
+        border-radius: 24px;
+        padding: 30px;
+        margin-bottom: 24px;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid #e2e8f0;
+    }
+    .card h2 {
+        font-family: 'Syne', sans-serif;
+        font-size: 22px;
+        color: var(--primary);
+        margin-bottom: 20px;
+    }
 
-        .container { max-width: 800px; margin: 30px auto; padding: 0 20px; }
+    /* GPS Auto-Arrive */
+    .tracking-box {
+        background: linear-gradient(135deg, var(--accent), #059669);
+        color: white;
+        border-radius: 24px;
+        padding: 40px 30px;
+        margin-bottom: 30px;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+    .tracking-box::after {
+        content: '📍';
+        position: absolute;
+        font-size: 120px;
+        right: -20px;
+        bottom: -30px;
+        opacity: 0.1;
+    }
+    .tracking-box h2 { font-family: 'Syne', sans-serif; font-size: 26px; margin-bottom: 10px; color: white; position: relative; }
+    .tracking-box p { opacity: 0.9; margin-bottom: 25px; font-size: 16px; position: relative; }
+    
+    .track-btn {
+        background: white;
+        color: var(--accent);
+        border: none;
+        padding: 14px 32px;
+        border-radius: 50px;
+        font-size: 16px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: var(--transition);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        position: relative;
+    }
+    .track-btn:hover { transform: translateY(-3px); box-shadow: 0 15px 25px rgba(0,0,0,0.15); }
+    
+    .tracking-status {
+        margin-top: 20px;
+        font-size: 14px;
+        font-weight: 600;
+        min-height: 20px;
+        position: relative;
+    }
+    .tracking-active {
+        background: rgba(255,255,255,0.2);
+        color: white;
+        padding: 10px 20px;
+        border-radius: 50px;
+        backdrop-filter: blur(5px);
+        display: inline-block;
+        border: 1px solid rgba(255,255,255,0.3);
+    }
 
-        .card {
-            background: white;
-            border-radius: 16px;
-            padding: 25px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-        }
-        .card h2 { font-size: 20px; color: #0284c7; margin-bottom: 20px; }
+    /* Booking cards */
+    .booking-card {
+        background: #f8fafc;
+        border-radius: 16px;
+        padding: 25px;
+        margin-bottom: 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 20px;
+        border-left: 5px solid var(--primary);
+        transition: var(--transition);
+    }
+    .booking-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-sm); background: white; }
+    .booking-card.arrived { border-left-color: var(--accent); background: #f0fdf4; }
+    .booking-card.completed { border-left-color: #94a3b8; background: #f1f5f9; opacity: 0.8; }
+    
+    .booking-info h3 { font-family: 'Syne', sans-serif; font-size: 20px; color: var(--dark); margin-bottom: 8px; }
+    .booking-info p { font-size: 15px; color: var(--text-muted); margin-bottom: 5px; }
 
-        /* GPS Tracking Box */
-        .tracking-box {
-            background: linear-gradient(135deg, #0ea5e9, #0284c7);
-            color: white;
-            border-radius: 16px;
-            padding: 25px;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-        .tracking-box h2 { font-size: 22px; margin-bottom: 10px; }
-        .tracking-box p { opacity: 0.9; margin-bottom: 20px; font-size: 15px; }
-        .track-btn {
-            background: white;
-            color: #0ea5e9;
-            border: none;
-            padding: 12px 30px;
-            border-radius: 50px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-        .track-btn:hover { transform: scale(1.05); }
-        .tracking-status {
-            margin-top: 15px;
-            font-size: 14px;
-            opacity: 0.9;
-            min-height: 20px;
-        }
-        .tracking-active {
-            background: #dcfce7;
-            color: #16a34a;
-            padding: 10px 20px;
-            border-radius: 50px;
-            font-weight: bold;
-            display: inline-block;
-            margin-top: 10px;
-        }
+    .booking-status { text-align: center; min-width: 160px; }
 
-        /* Booking cards */
-        .booking-card {
-            background: #f8fafc;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
-            border-left: 4px solid #0ea5e9;
-        }
-        .booking-card.arrived { border-left-color: #16a34a; background: #f0fdf4; }
-        .booking-info h3 { font-size: 18px; color: #0284c7; margin-bottom: 5px; }
-        .booking-info p { font-size: 14px; color: #666; margin-bottom: 3px; }
+    .status-badge {
+        padding: 8px 16px;
+        border-radius: 50px;
+        font-size: 13px;
+        font-weight: 700;
+        display: inline-block;
+        margin-bottom: 12px;
+    }
+    .status-waiting { background: #fefce8; color: #854d0e; }
+    .status-arrived { background: #dcfce7; color: #16a34a; }
+    .status-completed { background: #e2e8f0; color: #475569; }
 
-        .booking-status { text-align: center; min-width: 140px; }
+    .wait-mins { font-family: 'Syne', sans-serif; font-size: 36px; font-weight: 800; color: var(--primary); line-height: 1; }
+    .wait-label { font-size: 13px; font-weight: 600; color: var(--text-muted); margin-top: 4px; }
 
-        .status-waiting {
-            background: #fefce8;
-            color: #854d0e;
-            padding: 6px 15px;
-            border-radius: 50px;
-            font-size: 13px;
-            font-weight: bold;
-            display: inline-block;
-            margin-bottom: 8px;
-        }
-        .status-arrived {
-            background: #dcfce7;
-            color: #16a34a;
-            padding: 6px 15px;
-            border-radius: 50px;
-            font-size: 13px;
-            font-weight: bold;
-            display: inline-block;
-            margin-bottom: 8px;
-        }
-        .wait-mins { font-size: 26px; font-weight: bold; color: #0ea5e9; }
-        .wait-label { font-size: 12px; color: #999; margin-bottom: 8px; }
+    .review-btn {
+        display: inline-block;
+        margin-top: 12px;
+        padding: 10px 20px;
+        background: #f59e0b;
+        color: white;
+        border-radius: 50px;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 14px;
+        transition: var(--transition);
+        box-shadow: 0 4px 10px rgba(245,158,11,0.3);
+    }
+    .review-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(245,158,11,0.4); background: #d97706; }
 
-        .review-btn {
-            display: inline-block;
-            margin-top: 8px;
-            padding: 8px 18px;
-            background: #fbbf24;
-            color: #333;
-            border-radius: 50px;
-            text-decoration: none;
-            font-weight: bold;
-            font-size: 13px;
-            transition: transform 0.2s;
-        }
-        .review-btn:hover { transform: scale(1.05); }
+    .reviewed-badge {
+        display: inline-block;
+        margin-top: 12px;
+        color: var(--accent);
+        background: rgba(16,185,129,0.1);
+        padding: 8px 16px;
+        border-radius: 50px;
+        font-size: 13px;
+        font-weight: 700;
+    }
 
-        .reviewed-badge {
-            display: inline-block;
-            margin-top: 8px;
-            color: #16a34a;
-            font-size: 13px;
-            font-weight: bold;
-        }
+    .no-bookings {
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--text-muted);
+        font-size: 16px;
+        background: #f8fafc;
+        border-radius: 16px;
+        border: 2px dashed #e2e8f0;
+    }
+    .no-bookings a {
+        color: var(--primary);
+        text-decoration: none;
+        font-weight: 700;
+        display: inline-block;
+        margin-top: 15px;
+        padding: 10px 24px;
+        border-radius: 50px;
+        background: rgba(14,165,233,0.1);
+        transition: var(--transition);
+    }
+    .no-bookings a:hover { background: rgba(14,165,233,0.2); }
 
-        .no-bookings {
-            text-align: center;
-            padding: 40px;
-            color: #999;
-            font-size: 16px;
-        }
-        .no-bookings a { color: #0ea5e9; text-decoration: none; font-weight: 600; }
+    /* Toasts */
+    .toast {
+        display: none;
+        position: fixed;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%);
+        color: white;
+        padding: 16px 32px;
+        border-radius: 50px;
+        font-size: 16px;
+        font-weight: 700;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        z-index: 1000;
+        animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .success-toast { background: var(--primary); }
+    .arrived-toast { background: var(--accent); }
 
-        /* Success toast */
-        .success-toast {
-            display: none;
-            position: fixed;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #16a34a;
-            color: white;
-            padding: 15px 30px;
-            border-radius: 50px;
-            font-size: 16px;
-            font-weight: bold;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            z-index: 1000;
-        }
+    @keyframes slideUp {
+        from { bottom: -20px; opacity: 0; }
+        to { bottom: 30px; opacity: 1; }
+    }
+</style>
+{% endblock %}
 
-        /* Arrived notification */
-        .arrived-toast {
-            display: none;
-            position: fixed;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #16a34a;
-            color: white;
-            padding: 15px 30px;
-            border-radius: 50px;
-            font-size: 16px;
-            font-weight: bold;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            z-index: 1000;
-            animation: slideUp 0.3s ease;
-        }
-        @keyframes slideUp {
-            from { bottom: 0; opacity: 0; }
-            to { bottom: 30px; opacity: 1; }
-        }
-    </style>
-</head>
-<body>
+{% block content %}
+<div class="bookings-hero">
+    <h1>📋 My Bookings</h1>
+    <p>Track your appointments and auto-arrive when you reach the clinic</p>
+</div>
 
-    <nav>
-        <div class="logo">Tabibak طبيبك</div>
-        <div class="nav-links">
-            <a href="/clinics" class="nav-link nav-link-blue">🏥 Find Doctor</a>
-            <a href="/patient/profile" class="nav-link nav-link-blue">👤 My Profile</a>
-            <a href="/patient/logout" class="nav-link nav-link-outline">Logout →</a>
-        </div>
-    </nav>
+<div class="container" style="max-width: 900px; padding-top: 40px; padding-bottom: 80px;">
 
-    <div class="hero">
-        <h1>📋 My Bookings</h1>
-        <p>Track your appointments and auto-arrive when you reach the clinic</p>
+    <!-- GPS Auto-Arrive -->
+    <div class="tracking-box reveal">
+        <h2>🚶 Auto-Arrive Detection</h2>
+        <p>Enable tracking and we'll automatically mark you as arrived when you reach the clinic!</p>
+        <button class="track-btn" onclick="startTracking()" id="trackBtn">
+            📍 Start Tracking Location
+        </button>
+        <div class="tracking-status" id="trackingStatus"></div>
     </div>
 
-    <div class="container">
-
-        <!-- GPS Auto-Arrive -->
-        <div class="tracking-box">
-            <h2>🚶 Auto-Arrive Detection</h2>
-            <p>Enable tracking and we'll automatically mark you as arrived when you reach the clinic!</p>
-            <button class="track-btn" onclick="startTracking()" id="trackBtn">
-                📍 Start Tracking
-            </button>
-            <div class="tracking-status" id="trackingStatus"></div>
-        </div>
-
-        <!-- My Bookings -->
-        <div class="card">
-            <h2>🏥 Active Bookings</h2>
-            {% if bookings %}
-                {% for booking in bookings %}
-                <div class="booking-card {% if booking[5] == 1 %}arrived{% endif %}"
-                     id="booking-{{ booking[2] }}">
-                    <div class="booking-info">
-                        <h3>{{ booking[6] }}</h3>
-                        <p>👨‍⚕️ {{ booking[7] }}</p>
-                        <p>📅 Booked: {{ booking[3] }}</p>
+    <!-- Active Bookings -->
+    <div class="card reveal reveal-delay-1">
+        <h2>🏥 Active & Recent Bookings</h2>
+        {% if bookings %}
+            {% for booking in bookings %}
+            <div class="booking-card {% if booking[13] == 'completed' %}completed{% elif booking[5] == 1 %}arrived{% endif %}"
+                 id="booking-{{ booking[2] }}">
+                <div class="booking-info">
+                    <h3>{{ booking[6] }}</h3>
+                    <p>👨‍⚕️ Dr. {{ booking[7] }}</p>
+                    <p>📅 Booked: {{ booking[3] }}</p>
+                    {% if booking[13] != 'completed' %}
                         <p>👥 {{ booking[8] }} patients waiting</p>
-                    </div>
-                    <div class="booking-status">
-                        {% if booking[5] == 1 %}
-                            <div class="status-arrived">✅ Arrived!</div>
-                        {% else %}
-                            <div class="status-waiting" id="status-{{ booking[2] }}">⏳ Waiting</div>
-                        {% endif %}
+                    {% endif %}
+                </div>
+                <div class="booking-status">
+                    {% if booking[13] == 'completed' %}
+                        <div class="status-badge status-completed">✅ Completed</div>
+                    {% elif booking[5] == 1 %}
+                        <div class="status-badge status-arrived">✅ Arrived!</div>
+                    {% else %}
+                        <div class="status-badge status-waiting" id="status-{{ booking[2] }}">⏳ Waiting</div>
+                    {% endif %}
+                    
+                    {% if booking[13] != 'completed' %}
                         <div class="wait-mins">{{ booking[8] * booking[9] }}</div>
                         <div class="wait-label">min estimated wait</div>
-                        {% if booking[5] == 1 and booking[12] == 0 %}
-                            <a href="/review/{{ booking[0] }}" class="review-btn">⭐ Leave Review</a>
-                        {% elif booking[12] == 1 %}
-                            <div class="reviewed-badge">✅ Reviewed!</div>
-                        {% endif %}
-                    </div>
-                </div>
-                {% endfor %}
-            {% else %}
-                <div class="no-bookings">
-                    📭 No active bookings.<br><br>
-                    <a href="/clinics">Find a doctor and book now →</a>
-                </div>
-            {% endif %}
-        </div>
+                    {% endif %}
 
+                    {% if booking[13] == 'completed' and booking[12] == 0 %}
+                        <a href="/review/{{ booking[0] }}" class="review-btn">⭐ Leave a Review</a>
+                    {% elif booking[12] == 1 %}
+                        <div class="reviewed-badge">⭐ Reviewed!</div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="no-bookings">
+                <div style="font-size: 40px; margin-bottom: 10px;">📭</div>
+                No active or recent bookings found.<br>
+                <a href="/clinics">Find a Doctor & Book Now →</a>
+            </div>
+        {% endif %}
     </div>
 
-    <!-- Toasts -->
-    <div class="arrived-toast" id="arrivedToast"></div>
-    <div class="success-toast" id="successToast"></div>
+</div>
 
-    <script>
-        let trackingInterval = null;
-        let isTracking = false;
+<!-- Toasts -->
+<div class="toast arrived-toast" id="arrivedToast"></div>
+<div class="toast success-toast" id="successToast"></div>
+{% endblock %}
 
-        // Show review success message
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('reviewed') === 'true') {
-            const toast = document.getElementById('successToast');
-            toast.textContent = '⭐ Review submitted successfully!';
-            toast.style.display = 'block';
-            setTimeout(() => { toast.style.display = 'none'; }, 4000);
+{% block extra_scripts %}
+<script>
+    // Scroll reveal
+    const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) entry.target.classList.add('visible');
+        });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+    let trackingInterval = null;
+    let isTracking = false;
+
+    // Show review success message
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('reviewed') === 'true') {
+        const toast = document.getElementById('successToast');
+        toast.textContent = '⭐ Review submitted successfully! Thank you for your feedback.';
+        toast.style.display = 'block';
+        setTimeout(() => { toast.style.display = 'none'; }, 4000);
+    }
+
+    function startTracking() {
+        if (isTracking) {
+            stopTracking();
+            return;
         }
 
-        function startTracking() {
-            if (isTracking) {
-                stopTracking();
-                return;
+        const status = document.getElementById('trackingStatus');
+        const btn = document.getElementById('trackBtn');
+
+        if (!navigator.geolocation) {
+            status.textContent = '❌ GPS not supported by your browser';
+            return;
+        }
+
+        status.textContent = '🔍 Getting your location...';
+
+        navigator.geolocation.getCurrentPosition(
+            function(position) {
+                isTracking = true;
+                btn.textContent = '⏹️ Stop Tracking';
+                btn.style.color = '#dc2626';
+                status.innerHTML = '<span class="tracking-active">🟢 Tracking Active — checking automatically</span>';
+                checkArrival(position);
+                trackingInterval = setInterval(function() {
+                    navigator.geolocation.getCurrentPosition(checkArrival);
+                }, 30000);
+            },
+            function(error) {
+                status.textContent = '❌ Could not get location. Please allow location access.';
             }
+        );
+    }
 
-            const status = document.getElementById('trackingStatus');
-            const btn = document.getElementById('trackBtn');
+    function stopTracking() {
+        isTracking = false;
+        clearInterval(trackingInterval);
+        document.getElementById('trackBtn').textContent = '📍 Start Tracking Location';
+        document.getElementById('trackBtn').style.color = 'var(--accent)';
+        document.getElementById('trackingStatus').textContent = '⏹️ Tracking stopped';
+    }
 
-            if (!navigator.geolocation) {
-                status.textContent = '❌ GPS not supported by your browser';
-                return;
-            }
-
-            status.textContent = '🔍 Getting your location...';
-
-            navigator.geolocation.getCurrentPosition(
-                function(position) {
-                    isTracking = true;
-                    btn.textContent = '⏹️ Stop Tracking';
-                    btn.style.background = '#fee2e2';
-                    btn.style.color = '#dc2626';
-                    status.innerHTML = '<span class="tracking-active">🟢 Tracking Active — checking every 30 seconds</span>';
-                    checkArrival(position);
-                    trackingInterval = setInterval(function() {
-                        navigator.geolocation.getCurrentPosition(checkArrival);
-                    }, 30000);
-                },
-                function(error) {
-                    status.textContent = '❌ Could not get location. Please allow location access.';
-                }
-            );
-        }
-
-        function stopTracking() {
-            isTracking = false;
-            clearInterval(trackingInterval);
-            document.getElementById('trackBtn').textContent = '📍 Start Tracking';
-            document.getElementById('trackBtn').style.background = 'white';
-            document.getElementById('trackBtn').style.color = '#0ea5e9';
-            document.getElementById('trackingStatus').textContent = '⏹️ Tracking stopped';
-        }
-
-        function checkArrival(position) {
-            fetch('/api/check_arrival', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    lat: position.coords.latitude,
-                    lng: position.coords.longitude
-                })
+    function checkArrival(position) {
+        fetch('/api/check_arrival', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                lat: position.coords.latitude,
+                lng: position.coords.longitude
             })
-            .then(res => res.json())
-            .then(data => {
-                if (data.arrived && data.arrived.length > 0) {
-                    data.arrived.forEach(clinic => {
-                        showArrivedToast(clinic.clinic_name, clinic.distance_m);
-                        updateBookingCard(clinic.clinic_id);
-                    });
-                }
-            })
-            .catch(err => console.log('Error:', err));
-        }
-
-        function showArrivedToast(clinicName, distance) {
-            const toast = document.getElementById('arrivedToast');
-            toast.textContent = `✅ You've arrived at ${clinicName}! (${distance}m away)`;
-            toast.style.display = 'block';
-            setTimeout(() => { toast.style.display = 'none'; }, 5000);
-        }
-
-        function updateBookingCard(clinicId) {
-            const statusEl = document.getElementById('status-' + clinicId);
-            if (statusEl) {
-                statusEl.textContent = '✅ Arrived!';
-                statusEl.className = 'status-arrived';
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.arrived && data.arrived.length > 0) {
+                data.arrived.forEach(clinic => {
+                    showArrivedToast(clinic.clinic_name, clinic.distance_m);
+                    updateBookingCard(clinic.clinic_id);
+                });
             }
-            const card = document.getElementById('booking-' + clinicId);
-            if (card) card.classList.add('arrived');
-        }
-    </script>
+        })
+        .catch(err => console.log('Error:', err));
+    }
 
-</body>
-</html>
+    function showArrivedToast(clinicName, distance) {
+        const toast = document.getElementById('arrivedToast');
+        toast.textContent = `✅ You've arrived at ${clinicName}! (${distance}m away)`;
+        toast.style.display = 'block';
+        setTimeout(() => { toast.style.display = 'none'; }, 5000);
+    }
+
+    function updateBookingCard(clinicId) {
+        const statusEl = document.getElementById('status-' + clinicId);
+        if (statusEl) {
+            statusEl.textContent = '✅ Arrived!';
+            statusEl.className = 'status-badge status-arrived';
+        }
+        const card = document.getElementById('booking-' + clinicId);
+        if (card) card.classList.add('arrived');
+    }
+</script>
+{% endblock %}

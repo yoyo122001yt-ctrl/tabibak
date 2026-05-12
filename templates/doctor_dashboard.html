@@ -1,184 +1,173 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tabibak - Doctor Dashboard</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', sans-serif; background: #f0f9ff; color: #333; }
+{% extends 'base.html' %}
+{% block title %}Doctor Dashboard - Tabibak{% endblock %}
 
-        nav {
-            background: white;
-            padding: 15px 40px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        .logo { font-size: 24px; font-weight: bold; color: #0ea5e9; }
-        .logout { color: #dc2626; text-decoration: none; font-weight: 600; }
+{% block extra_head %}
+<style>
+    .dashboard-hero {
+        background: linear-gradient(135deg, var(--accent), #059669);
+        color: white;
+        padding: 80px 40px;
+        text-align: center;
+        border-radius: 0 0 40px 40px;
+        margin-top: 70px; /* offset navbar */
+        position: relative;
+        overflow: hidden;
+    }
+    .dashboard-hero::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at center, rgba(255,255,255,0.15) 0%, transparent 70%);
+    }
+    .dashboard-hero h1 {
+        font-family: 'Syne', sans-serif;
+        font-size: 36px;
+        font-weight: 800;
+        margin-bottom: 10px;
+        position: relative;
+    }
+    .dashboard-hero p {
+        font-size: 18px;
+        opacity: 0.9;
+        margin-bottom: 0;
+        position: relative;
+    }
 
-        .welcome {
-            background: linear-gradient(135deg, #0ea5e9, #0284c7);
-            color: white;
-            padding: 40px;
-            text-align: center;
-        }
-        .welcome h1 { font-size: 32px; margin-bottom: 10px; }
-        .welcome p { font-size: 18px; opacity: 0.9; }
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
 
-        .dashboard {
-            max-width: 800px;
-            margin: 40px auto;
-            padding: 0 20px;
-        }
+    .card {
+        background: white;
+        border-radius: 24px;
+        padding: 30px;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid rgba(0,0,0,0.02);
+        text-align: center;
+    }
+    .card h2 {
+        font-family: 'Syne', sans-serif;
+        font-size: 22px;
+        color: var(--dark);
+        margin-bottom: 20px;
+    }
 
-        .status-card {
-            background: white;
-            border-radius: 16px;
-            padding: 30px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-            text-align: center;
-        }
-        .status-card h2 { font-size: 22px; margin-bottom: 20px; color: #333; }
+    .stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+        margin-bottom: 24px;
+    }
+    .stat-card {
+        background: #f8fafc;
+        border-radius: 16px;
+        padding: 25px;
+        border: 1px solid #e2e8f0;
+        transition: var(--transition);
+    }
+    .stat-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-sm); border-color: var(--accent); }
+    .stat-number { font-family: 'Syne', sans-serif; font-size: 48px; font-weight: 800; color: var(--accent); line-height: 1; }
+    .stat-label { color: var(--text-muted); font-size: 14px; font-weight: 600; margin-top: 8px; text-transform: uppercase; letter-spacing: 1px; }
 
-        .status-open {
-            background: #dcfce7;
-            color: #16a34a;
-            padding: 15px 40px;
-            border-radius: 50px;
-            font-size: 20px;
-            font-weight: bold;
-            display: inline-block;
-            margin-bottom: 20px;
-        }
-        .status-closed {
-            background: #fee2e2;
-            color: #dc2626;
-            padding: 15px 40px;
-            border-radius: 50px;
-            font-size: 20px;
-            font-weight: bold;
-            display: inline-block;
-            margin-bottom: 20px;
-        }
+    .status-badge {
+        padding: 15px 40px;
+        border-radius: 50px;
+        font-size: 20px;
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 24px;
+    }
+    .status-open { background: #dcfce7; color: #16a34a; }
+    .status-closed { background: #fee2e2; color: #dc2626; }
 
-        .btn {
-            padding: 12px 30px;
-            border-radius: 50px;
-            font-size: 16px;
-            font-weight: bold;
-            text-decoration: none;
-            display: inline-block;
-            margin: 5px;
-            transition: transform 0.2s;
-        }
-        .btn:hover { transform: scale(1.05); }
-        .btn-green { background: #16a34a; color: white; }
-        .btn-red { background: #dc2626; color: white; }
-        .btn-blue { background: #0ea5e9; color: white; }
+    .inline-form { display: inline-block; }
+    .btn-submit {
+        padding: 14px 32px;
+        border-radius: 50px;
+        font-size: 16px;
+        font-weight: 700;
+        border: none;
+        cursor: pointer;
+        transition: var(--transition);
+        font-family: inherit;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .btn-submit:hover { transform: translateY(-3px); box-shadow: 0 10px 25px rgba(0,0,0,0.15); }
+    .btn-green { background: var(--accent); color: white; }
+    .btn-red { background: #ef4444; color: white; }
+    .btn-blue { background: var(--primary); color: white; }
 
-        .stats {
-            display: flex;
-            gap: 20px;
-            margin-bottom: 20px;
-        }
-        .stat-card {
-            background: white;
-            border-radius: 16px;
-            padding: 25px;
-            flex: 1;
-            text-align: center;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-        }
-        .stat-number { font-size: 48px; font-weight: bold; color: #0ea5e9; }
-        .stat-label { color: #999; font-size: 14px; margin-top: 5px; }
+    .flash {
+        padding: 16px 20px;
+        border-radius: 16px;
+        font-size: 15px;
+        font-weight: 600;
+        margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .flash.error { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
+    .flash.success { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+    
+    @media (max-width: 768px) {
+        .stats { grid-template-columns: 1fr; }
+    }
+</style>
+{% endblock %}
 
-        .queue-card {
-            background: white;
-            border-radius: 16px;
-            padding: 30px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-            text-align: center;
-        }
-        .queue-card h2 { font-size: 22px; margin-bottom: 20px; }
+{% block content %}
+<div class="dashboard-hero">
+    <h1>👨‍⚕️ Welcome, {{ doctor }}!</h1>
+    <p>Manage your clinic operations and patient queue efficiently.</p>
+</div>
 
-        .flash {
-            max-width: 800px;
-            margin: 16px auto 0;
-            padding: 12px 20px;
-            border-radius: 12px;
-            font-size: 14px;
-            font-weight: 600;
-        }
-        .flash.error { background: #fee2e2; color: #b91c1c; }
-        .flash.success { background: #dcfce7; color: #166534; }
-        .inline-form { display: inline; }
-        .btn-submit {
-            padding: 12px 30px;
-            border-radius: 50px;
-            font-size: 16px;
-            font-weight: bold;
-            border: none;
-            cursor: pointer;
-            margin: 5px;
-            transition: transform 0.2s;
-            font-family: inherit;
-        }
-        .btn-submit:hover { transform: scale(1.05); }
-    </style>
-</head>
-<body>
-
-    <nav>
-        <div class="logo">Tabibak طبيبك</div>
-        <a href="/doctor/logout" class="logout">Logout →</a>
-    </nav>
+<div class="container" style="max-width: 900px; padding-top: 40px; padding-bottom: 80px;">
 
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             {% for category, message in messages %}
-                <div class="flash {{ category }}">{{ message }}</div>
+                <div class="flash {{ category }} reveal">
+                    {% if category == 'success' %}✅{% else %}⚠️{% endif %} {{ message }}
+                </div>
             {% endfor %}
         {% endif %}
     {% endwith %}
 
-    <div class="welcome">
-        <h1>👨‍⚕️ Welcome, {{ doctor }}!</h1>
-        <p>Manage your clinic and queue from here</p>
+    <!-- Stats -->
+    <div class="stats reveal">
+        <div class="stat-card">
+            <div class="stat-number">{{ clinic[4] }}</div>
+            <div class="stat-label">Patients Waiting</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ clinic[4] * clinic[5] }}</div>
+            <div class="stat-label">Min Wait Time</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ clinic[5] }}</div>
+            <div class="stat-label">Min Per Patient</div>
+        </div>
     </div>
 
-    <div class="dashboard">
-
-        <!-- Stats -->
-        <div class="stats">
-            <div class="stat-card">
-                <div class="stat-number">{{ clinic[4] }}</div>
-                <div class="stat-label">Patients Waiting</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number">{{ clinic[4] * clinic[5] }}</div>
-                <div class="stat-label">Minutes Wait Time</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number">{{ clinic[5] }}</div>
-                <div class="stat-label">Min Per Patient</div>
-            </div>
-        </div>
-
+    <div class="dashboard-grid">
         <!-- Status -->
-        <div class="status-card">
+        <div class="card reveal reveal-delay-1">
             <h2>🏥 {{ clinic[1] }} — Current Status</h2>
             {% if clinic[6] == 1 %}
-                <div class="status-open">🟢 Clinic is Open</div><br>
+                <div class="status-badge status-open">🟢 Clinic is Open</div><br>
                 <form class="inline-form" method="post" action="{{ url_for('doctor_leave') }}">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                     <button type="submit" class="btn-submit btn-red">🔴 Mark as Closed</button>
                 </form>
             {% else %}
-                <div class="status-closed">🔴 Clinic is Closed</div><br>
+                <div class="status-badge status-closed">🔴 Clinic is Closed</div><br>
                 <form class="inline-form" method="post" action="{{ url_for('doctor_arrive') }}">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                     <button type="submit" class="btn-submit btn-green">🟢 Mark as Open</button>
@@ -187,16 +176,28 @@
         </div>
 
         <!-- Queue Management -->
-        <div class="queue-card">
+        <div class="card reveal reveal-delay-2">
             <h2>🔢 Queue Management</h2>
-            <p style="color:#999; margin-bottom:20px;">Click when the next patient enters your room</p>
+            <p style="color:var(--text-muted); margin-bottom:24px;">Click the button below when the next patient enters your room. This updates the live queue for everyone waiting.</p>
             <form class="inline-form" method="post" action="{{ url_for('next_patient') }}">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-                <button type="submit" class="btn-submit btn-blue">✅ Next Patient →</button>
+                <button type="submit" class="btn-submit btn-blue">✅ Call Next Patient →</button>
             </form>
         </div>
-
     </div>
 
-</body>
-</html>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Scroll Reveal Animation
+    const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) entry.target.classList.add('visible');
+        });
+    }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+{% endblock %}

@@ -1,158 +1,227 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tabibak - Patient Profile</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', sans-serif; background: #f0f9ff; color: #333; }
+{% extends 'base.html' %}
+{% block title %}Patient Profile - Tabibak{% endblock %}
 
-        nav {
-            background: white;
-            padding: 15px 40px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        .logo { font-size: 24px; font-weight: bold; color: #0ea5e9; }
-        .back { color: #0ea5e9; text-decoration: none; font-weight: 600; }
+{% block extra_head %}
+<style>
+    .patient-hero {
+        background: linear-gradient(135deg, var(--accent), #059669);
+        color: white;
+        padding: 80px 40px;
+        text-align: center;
+        border-radius: 0 0 40px 40px;
+        margin-top: 70px;
+        position: relative;
+        overflow: hidden;
+    }
+    .patient-hero::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at center, rgba(255,255,255,0.1) 0%, transparent 70%);
+    }
+    .patient-hero h1 {
+        font-family: 'Syne', sans-serif;
+        font-size: 36px;
+        font-weight: 800;
+        margin-bottom: 10px;
+        position: relative;
+    }
+    .patient-hero p {
+        font-size: 18px;
+        opacity: 0.9;
+        position: relative;
+    }
 
-        .hero {
-            background: linear-gradient(135deg, #0ea5e9, #0284c7);
-            color: white;
-            padding: 40px;
-            text-align: center;
-        }
-        .hero h1 { font-size: 30px; margin-bottom: 10px; }
-        .hero p { opacity: 0.9; }
+    .card {
+        background: white;
+        border-radius: 24px;
+        padding: 30px;
+        margin-bottom: 24px;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid #e2e8f0;
+    }
+    .card h2 {
+        font-family: 'Syne', sans-serif;
+        font-size: 22px;
+        color: var(--accent);
+        margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
 
-        .container {
-            max-width: 800px;
-            margin: 30px auto;
-            padding: 0 20px;
-        }
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+    }
+    .info-item {
+        background: #f8fafc;
+        padding: 16px;
+        border-radius: 16px;
+    }
+    .info-item label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 6px; }
+    .info-item p { font-size: 16px; font-weight: 600; color: var(--dark); }
 
-        .card {
-            background: white;
-            border-radius: 16px;
-            padding: 25px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-        }
-        .card h2 { font-size: 20px; color: #0284c7; margin-bottom: 20px; }
+    .blood-type {
+        background: #fee2e2;
+        color: #dc2626;
+        padding: 6px 16px;
+        border-radius: 50px;
+        font-weight: 700;
+        display: inline-block;
+    }
 
-        .info-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-        }
-        .info-item label { font-size: 12px; color: #999; display: block; margin-bottom: 4px; }
-        .info-item p { font-size: 16px; font-weight: 600; color: #333; }
+    .documents-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 20px;
+    }
+    .doc-card {
+        background: #f8fafc;
+        border-radius: 16px;
+        padding: 16px;
+        text-align: center;
+        border: 1px solid #e2e8f0;
+        transition: var(--transition);
+    }
+    .doc-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-sm); border-color: var(--accent); }
+    .doc-card img {
+        width: 100%;
+        height: 160px;
+        object-fit: cover;
+        border-radius: 12px;
+        margin-bottom: 12px;
+        cursor: pointer;
+        transition: var(--transition);
+    }
+    .doc-card p { font-size: 14px; color: var(--dark); margin-bottom: 4px; font-weight: 700; }
+    .doc-card span { font-size: 12px; color: var(--text-muted); }
+    .no-docs {
+        color: var(--text-muted);
+        text-align: center;
+        padding: 40px;
+        font-size: 15px;
+        background: #f8fafc;
+        border-radius: 16px;
+        border: 2px dashed #e2e8f0;
+    }
 
-        .blood-type {
-            background: #fee2e2;
-            color: #dc2626;
-            padding: 5px 15px;
-            border-radius: 50px;
-            font-weight: bold;
-            display: inline-block;
-        }
+    /* Modal for full image view */
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: rgba(15, 23, 42, 0.9);
+        backdrop-filter: blur(5px);
+        z-index: 2000;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    .modal.active { display: flex; opacity: 1; }
+    .modal img { max-width: 90%; max-height: 90%; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); }
+    .modal-close {
+        position: absolute;
+        top: 30px; right: 40px;
+        color: white;
+        font-size: 40px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: var(--transition);
+    }
+    .modal-close:hover { transform: scale(1.1); color: var(--danger); }
+</style>
+{% endblock %}
 
-        .documents-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 15px;
-            margin-top: 10px;
-        }
-        .doc-card {
-            background: #f8fafc;
-            border-radius: 12px;
-            padding: 15px;
-            text-align: center;
-            border: 1px solid #e2e8f0;
-        }
-        .doc-card img {
-            width: 100%;
-            height: 150px;
-            object-fit: cover;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-        .doc-card img:hover { transform: scale(1.05); }
-        .doc-card p { font-size: 13px; color: #555; margin-bottom: 5px; font-weight: 600; }
-        .doc-card span { font-size: 11px; color: #999; }
-        .no-docs { color: #999; text-align: center; padding: 20px; font-size: 15px; }
+{% block content %}
+<div class="patient-hero">
+    <h1>👤 {{ patient[1] }}</h1>
+    <p>Patient Medical Profile</p>
+</div>
 
-        /* Modal for full image view */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-        }
-        .modal.active { display: flex; }
-        .modal img { max-width: 90%; max-height: 90%; border-radius: 10px; }
-        .modal-close {
-            position: absolute;
-            top: 20px; right: 30px;
-            color: white;
-            font-size: 40px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-    </style>
-</head>
-<body>
+<div class="container" style="max-width: 900px; padding-top: 40px; padding-bottom: 80px;">
 
-    <nav>
-        <div class="logo">Tabibak طبيبك</div>
-        <a href="/doctor/dashboard" class="back">← Back to Dashboard</a>
-    </nav>
-
-    <div class="hero">
-        <h1>👤 {{ patient[1] }}</h1>
-        <p>Patient Medical Profile</p>
-    </div>
-
-    <div class="container">
-
-        <!-- Patient Info -->
-        <div class="card">
-            <h2>📋 Patient Information</h2>
-            <div class="info-grid">
-                <div class="info-item">
-                    <label>Full Name</label>
-                    <p>{{ patient[1] }}</p>
-                </div>
-                <div class="info-item">
-                    <label>Age</label>
-                    <p>{{ patient[4] }} years old</p>
-                </div>
-                <div class="info-item">
-                    <label>Blood Type</label>
-                    <p><span class="blood-type">🩸 {{ patient[5] }}</span></p>
-                </div>
-                <div class="info-item">
-                    <label>Phone</label>
-                    <p>📱 {{ patient[6] }}</p>
-                </div>
-                <div class="info-item">
-                    <label>Email</label>
-                    <p>✉️ {{ patient[2] }}</p>
-                </div>
+    <!-- Patient Info -->
+    <div class="card reveal">
+        <h2>📋 Patient Information</h2>
+        <div class="info-grid">
+            <div class="info-item">
+                <label>Full Name</label>
+                <p>{{ patient[1] }}</p>
+            </div>
+            <div class="info-item">
+                <label>Age</label>
+                <p>{{ patient[4] }} years old</p>
+            </div>
+            <div class="info-item">
+                <label>Blood Type</label>
+                <p><span class="blood-type">🩸 {{ patient[5] }}</span></p>
+            </div>
+            <div class="info-item">
+                <label>Phone</label>
+                <p>📱 <a href="tel:{{ patient[6] }}" style="color:var(--dark); text-decoration:none;">{{ patient[6] }}</a></p>
+            </div>
+            <div class="info-item">
+                <label>Email</label>
+                <p>✉️ <a href="mailto:{{ patient[2] }}" style="color:var(--dark); text-decoration:none;">{{ patient[2] }}</a></p>
             </div>
         </div>
+    </div>
 
-        <!-- Medical Documents -->
-        <div class="card">
-            <h2>📁 Medical Documents</h2>
-            {% if documents %}
-            <div class="documents-grid">
+    <!-- Medical Documents -->
+    <div class="card reveal reveal-delay-1">
+        <h2>📁 Medical Documents</h2>
+        {% if documents %}
+        <div class="documents-grid">
+            {% for doc in documents %}
+            <div class="doc-card">
+                <img src="/static/uploads/{{ doc[2] }}" alt="{{ doc[3] }}" onclick="openModal(this.src)" loading="lazy">
+                <p>{{ doc[3] }}</p>
+                <span>{{ doc[4] }}</span>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="no-docs">
+            <div style="font-size:40px; margin-bottom:10px;">📂</div>
+            No medical documents uploaded by this patient.
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+
+<!-- Modal -->
+<div class="modal" id="imageModal" onclick="closeModal(event)">
+    <span class="modal-close" onclick="closeModal(event)">&times;</span>
+    <img id="modalImage" src="" alt="Full document">
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    function openModal(src) {
+        document.getElementById('modalImage').src = src;
+        document.getElementById('imageModal').classList.add('active');
+        document.body.style.overflow = 'hidden'; // prevent scrolling
+    }
+    
+    function closeModal(e) {
+        if (e.target === document.getElementById('imageModal') || e.target.classList.contains('modal-close')) {
+            document.getElementById('imageModal').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    }
+
+    // Scroll reveal
+    const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) entry.target.classList.add('visible');
+        });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+{% endblock %}

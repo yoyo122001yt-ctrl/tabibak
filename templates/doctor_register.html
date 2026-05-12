@@ -1,95 +1,113 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tabibak - Doctor Registration</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, #16a34a, #15803d);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        .register-box {
-            background: white;
-            border-radius: 20px;
-            padding: 40px;
-            width: 550px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
-        }
-        .logo { font-size: 24px; font-weight: bold; color: #0ea5e9; margin-bottom: 5px; text-align: center; }
-        .subtitle { color: #999; margin-bottom: 30px; font-size: 15px; text-align: center; }
-        .section-title {
-            font-size: 14px;
-            font-weight: 700;
-            color: #16a34a;
-            margin-bottom: 15px;
-            margin-top: 20px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        .input-group { margin-bottom: 15px; }
-        .input-group label { display: block; margin-bottom: 6px; font-weight: 600; color: #333; font-size: 14px; }
-        .input-group input, .input-group select {
-            width: 100%;
-            padding: 10px 15px;
-            border: 2px solid #e2e8f0;
-            border-radius: 10px;
-            font-size: 15px;
-            outline: none;
-            transition: border 0.2s;
-        }
-        .input-group input:focus, .input-group select:focus { border-color: #16a34a; }
-        .row { display: flex; gap: 15px; }
-        .row .input-group { flex: 1; }
-        .register-btn {
-            width: 100%;
-            padding: 12px;
-            background: #16a34a;
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 17px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 15px;
-        }
-        .register-btn:hover { background: #15803d; }
-        .error {
-            background: #fee2e2;
-            color: #dc2626;
-            padding: 10px;
-            border-radius: 10px;
-            margin-bottom: 15px;
-            font-size: 14px;
-        }
-        .notice {
-            background: #fefce8;
-            color: #854d0e;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            font-size: 14px;
-            border-left: 4px solid #eab308;
-        }
-        .login-link { text-align: center; margin-top: 15px; font-size: 14px; color: #666; }
-        .login-link a { color: #16a34a; text-decoration: none; font-weight: 600; }
-        .divider {
-            border: none;
-            border-top: 2px solid #f0f0f0;
-            margin: 20px 0;
-        }
-    </style>
-</head>
-<body>
-    <div class="register-box">
-        <div class="logo">Tabibak طبيبك</div>
-        <div class="subtitle">Doctor Registration — Join our network</div>
+{% extends 'base.html' %}
+{% block title %}Doctor Register - Tabibak{% endblock %}
+
+{% block extra_head %}
+<style>
+    body {
+        background: linear-gradient(135deg, var(--accent), #059669);
+        min-height: 100vh;
+    }
+    .auth-wrapper {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: calc(100vh - 70px);
+        padding: 40px 20px;
+        margin-top: 70px;
+    }
+    .auth-card {
+        background: white;
+        border-radius: 24px;
+        padding: 40px 40px;
+        width: 100%;
+        max-width: 600px;
+        box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+    }
+    .auth-logo { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; color: var(--accent); margin-bottom: 5px; text-align: center; }
+    .auth-subtitle { color: var(--text-muted); margin-bottom: 30px; font-size: 15px; text-align: center; }
+    
+    .section-title {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--accent);
+        margin-bottom: 15px;
+        margin-top: 20px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    
+    .input-group { margin-bottom: 16px; text-align: left; }
+    .input-group label { display: block; margin-bottom: 8px; font-weight: 700; color: var(--dark); font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .input-group input, .input-group select {
+        width: 100%;
+        padding: 12px 16px;
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        font-size: 15px;
+        font-family: inherit;
+        outline: none;
+        transition: var(--transition);
+        background: #f8fafc;
+    }
+    .input-group input:focus, .input-group select:focus { border-color: var(--accent); background: white; }
+    
+    .row { display: flex; gap: 15px; }
+    .row .input-group { flex: 1; }
+    
+    .auth-btn {
+        width: 100%;
+        padding: 14px;
+        background: linear-gradient(135deg, var(--accent), #059669);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: var(--transition);
+        margin-top: 10px;
+        margin-bottom: 20px;
+    }
+    .auth-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(16,185,129,0.3); }
+    
+    .error {
+        background: #fee2e2;
+        color: #dc2626;
+        padding: 12px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+        font-size: 14px;
+        font-weight: 600;
+        text-align: center;
+    }
+    
+    .notice {
+        background: #fefce8;
+        color: #854d0e;
+        padding: 15px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+        font-size: 14px;
+        border-left: 4px solid #eab308;
+        font-weight: 600;
+    }
+    
+    .auth-links { font-size: 14px; color: var(--text-muted); text-align: center; }
+    .auth-links a { color: var(--accent); text-decoration: none; font-weight: 700; }
+    
+    .divider {
+        border: none;
+        border-top: 2px solid #f1f5f9;
+        margin: 24px 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+    <div class="auth-card">
+        <div class="auth-logo">Tabibak <em>طبيبك</em></div>
+        <div class="auth-subtitle">Doctor Registration — Join our network</div>
 
         <div class="notice">
             ⚠️ After registration your account will be reviewed and approved within 24 hours before going live on Tabibak.
@@ -158,15 +176,12 @@
                 </div>
             </div>
 
-            <button type="submit" class="register-btn">Submit Registration →</button>
+            <button type="submit" class="auth-btn">Submit Registration →</button>
         </form>
 
-        <div class="login-link">
+        <div class="auth-links">
             Already have an account? <a href="/doctor/login">Login here</a>
         </div>
-        <div class="login-link" style="margin-top:8px;">
-            <a href="/">← Back to Tabibak</a>
-        </div>
     </div>
-</body>
-</html>
+</div>
+{% endblock %}

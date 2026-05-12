@@ -1,291 +1,350 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tabibak - My Profile</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', sans-serif; background: #f0f9ff; color: #333; }
+{% extends 'base.html' %}
+{% block title %}My Profile - Tabibak{% endblock %}
 
-        nav {
-            background: white;
-            padding: 15px 40px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        .logo { font-size: 24px; font-weight: bold; color: #0ea5e9; }
-        .nav-links { display: flex; gap: 10px; flex-wrap: wrap; }
-        .nav-link {
-            padding: 8px 18px;
-            border-radius: 50px;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 14px;
-            transition: transform 0.2s;
-        }
-        .nav-link:hover { transform: scale(1.05); }
-        .nav-link-blue { background: #f0f9ff; color: #0ea5e9; border: 1px solid #bae6fd; }
-        .nav-link-red { color: #dc2626; border: 2px solid #dc2626; }
+{% block extra_head %}
+<style>
+    .profile-hero {
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        color: white;
+        padding: 80px 40px;
+        text-align: center;
+        border-radius: 0 0 40px 40px;
+        margin-top: 70px; /* offset navbar */
+        position: relative;
+        overflow: hidden;
+    }
+    .profile-hero::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at center, rgba(255,255,255,0.1) 0%, transparent 70%);
+    }
+    .profile-hero h1 {
+        font-family: 'Syne', sans-serif;
+        font-size: 36px;
+        font-weight: 800;
+        margin-bottom: 10px;
+        position: relative;
+    }
+    .profile-hero p {
+        font-size: 16px;
+        opacity: 0.9;
+        margin-bottom: 25px;
+        position: relative;
+    }
+    
+    .hero-btns {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        flex-wrap: wrap;
+        position: relative;
+    }
+    .hero-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 25px;
+        border-radius: 50px;
+        font-weight: 700;
+        text-decoration: none;
+        font-size: 15px;
+        transition: var(--transition);
+    }
+    .hero-btn:hover { transform: translateY(-3px); box-shadow: 0 10px 25px rgba(0,0,0,0.15); }
+    .hero-btn-white { background: white; color: var(--primary); }
+    .hero-btn-outline { background: rgba(255,255,255,0.1); color: white; border: 2px solid rgba(255,255,255,0.5); backdrop-filter: blur(10px); }
 
-        .hero {
-            background: linear-gradient(135deg, #0ea5e9, #0284c7);
-            color: white;
-            padding: 50px 40px;
-            text-align: center;
-        }
-        .hero h1 { font-size: 32px; margin-bottom: 10px; }
-        .hero p { opacity: 0.9; margin-bottom: 20px; }
-        .hero-btns { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; }
-        .hero-btn {
-            display: inline-block;
-            padding: 12px 25px;
-            border-radius: 50px;
-            font-weight: bold;
-            text-decoration: none;
-            font-size: 15px;
-            transition: transform 0.2s;
-        }
-        .hero-btn:hover { transform: scale(1.05); }
-        .hero-btn-white { background: white; color: #0ea5e9; }
-        .hero-btn-outline { background: transparent; color: white; border: 2px solid white; }
+    .card {
+        background: white;
+        border-radius: 24px;
+        padding: 30px;
+        margin-bottom: 24px;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid rgba(0,0,0,0.02);
+    }
+    .card h2 {
+        font-family: 'Syne', sans-serif;
+        font-size: 22px;
+        color: var(--primary);
+        margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
 
-        .container { max-width: 800px; margin: 30px auto; padding: 0 20px; }
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+    }
+    .info-item {
+        background: #f8fafc;
+        padding: 16px;
+        border-radius: 16px;
+    }
+    .info-item label {
+        font-size: 12px;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-weight: 700;
+        display: block;
+        margin-bottom: 6px;
+    }
+    .info-item p {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--dark);
+    }
 
-        .card {
-            background: white;
-            border-radius: 16px;
-            padding: 25px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-        }
-        .card h2 { font-size: 20px; color: #0284c7; margin-bottom: 20px; }
+    /* Active Bookings */
+    .booking-row {
+        background: #f8fafc;
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 15px;
+        border-left: 4px solid var(--accent);
+        transition: var(--transition);
+    }
+    .booking-row:hover { background: white; box-shadow: var(--shadow-sm); transform: translateX(5px); }
+    .booking-row h3 { font-family: 'Syne', sans-serif; font-size: 18px; color: var(--dark); margin-bottom: 5px; }
+    .booking-row p { font-size: 14px; color: var(--text-muted); }
+    .booking-wait-block { text-align: center; min-width: 100px; }
+    .booking-wait { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; color: var(--accent); line-height: 1; }
+    .booking-wait-label { font-size: 12px; color: var(--text-muted); font-weight: 600; }
+    
+    .track-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 10px 20px;
+        background: var(--primary);
+        color: white;
+        border-radius: 50px;
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 700;
+        transition: var(--transition);
+    }
+    .track-link:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(14,165,233,0.3); }
 
-        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .info-item label { font-size: 12px; color: #999; display: block; margin-bottom: 4px; }
-        .info-item p { font-size: 16px; font-weight: 600; color: #333; }
+    /* Upload */
+    .upload-form { display: flex; flex-direction: column; gap: 15px; }
+    .upload-form input[type="text"] {
+        padding: 14px 20px;
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        font-size: 15px;
+        font-family: inherit;
+        outline: none;
+        transition: var(--transition);
+        background: #f8fafc;
+    }
+    .upload-form input[type="text"]:focus { border-color: var(--primary); background: white; }
 
-        /* Active Bookings */
-        .booking-row {
-            background: #f8fafc;
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
-            border-left: 4px solid #0ea5e9;
-        }
-        .booking-row h3 { font-size: 16px; color: #0284c7; margin-bottom: 3px; }
-        .booking-row p { font-size: 13px; color: #666; }
-        .booking-wait { font-size: 22px; font-weight: bold; color: #0ea5e9; text-align: center; }
-        .booking-wait-label { font-size: 11px; color: #999; text-align: center; }
-        .track-link {
-            display: inline-block;
-            padding: 8px 18px;
-            background: #0ea5e9;
-            color: white;
-            border-radius: 50px;
-            text-decoration: none;
-            font-size: 13px;
-            font-weight: bold;
-        }
+    .file-upload {
+        border: 2px dashed var(--primary-light);
+        border-radius: 16px;
+        padding: 40px 20px;
+        text-align: center;
+        cursor: pointer;
+        background: rgba(14,165,233,0.05);
+        transition: var(--transition);
+    }
+    .file-upload:hover { border-color: var(--primary); background: rgba(14,165,233,0.1); }
+    .file-upload input { display: none; }
+    .file-upload label { cursor: pointer; color: var(--primary); font-weight: 700; font-size: 16px; display: block; }
+    .file-upload p { color: var(--text-muted); font-size: 13px; margin-top: 8px; }
 
-        .upload-form { margin-top: 10px; }
-        .upload-form input[type="text"] {
-            width: 100%;
-            padding: 10px 15px;
-            border: 2px solid #e2e8f0;
-            border-radius: 10px;
-            font-size: 15px;
-            margin-bottom: 10px;
-            outline: none;
-        }
-        .upload-form input[type="text"]:focus { border-color: #0ea5e9; }
+    .upload-btn {
+        padding: 14px;
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: var(--transition);
+    }
+    .upload-btn:hover { background: var(--primary-dark); transform: translateY(-2px); }
 
-        .file-upload {
-            border: 2px dashed #0ea5e9;
-            border-radius: 10px;
-            padding: 30px;
-            text-align: center;
-            margin-bottom: 10px;
-            cursor: pointer;
-            background: #f0f9ff;
-        }
-        .file-upload input { display: none; }
-        .file-upload label { cursor: pointer; color: #0ea5e9; font-weight: 600; font-size: 16px; }
-        .file-upload p { color: #999; font-size: 13px; margin-top: 5px; }
+    /* Documents */
+    .documents-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 20px;
+    }
+    .doc-card {
+        background: #f8fafc;
+        border-radius: 16px;
+        padding: 15px;
+        text-align: center;
+        border: 1px solid #e2e8f0;
+        transition: var(--transition);
+    }
+    .doc-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-sm); border-color: var(--primary-light); }
+    .doc-card img {
+        width: 100%;
+        height: 160px;
+        object-fit: cover;
+        border-radius: 12px;
+        margin-bottom: 12px;
+    }
+    .doc-card p { font-size: 14px; font-weight: 600; color: var(--dark); margin-bottom: 4px; }
+    .doc-card span { font-size: 12px; color: var(--text-muted); }
+    .no-docs {
+        text-align: center;
+        padding: 40px;
+        background: #f8fafc;
+        border-radius: 16px;
+        border: 2px dashed #e2e8f0;
+        color: var(--text-muted);
+        font-size: 15px;
+    }
 
-        .upload-btn {
-            width: 100%;
-            padding: 12px;
-            background: #0ea5e9;
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        .upload-btn:hover { background: #0284c7; }
+    .success {
+        background: #dcfce7;
+        color: #16a34a;
+        padding: 12px 20px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+        font-size: 14px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+</style>
+{% endblock %}
 
-        .documents-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 15px;
-            margin-top: 10px;
-        }
-        .doc-card {
-            background: #f8fafc;
-            border-radius: 12px;
-            padding: 15px;
-            text-align: center;
-            border: 1px solid #e2e8f0;
-        }
-        .doc-card img {
-            width: 100%;
-            height: 150px;
-            object-fit: cover;
-            border-radius: 8px;
-            margin-bottom: 10px;
-        }
-        .doc-card p { font-size: 13px; color: #555; margin-bottom: 5px; }
-        .doc-card span { font-size: 11px; color: #999; }
-        .no-docs { color: #999; text-align: center; padding: 20px; font-size: 15px; }
+{% block content %}
+<div class="profile-hero">
+    <h1>👤 Welcome, {{ patient[1] }}!</h1>
+    <p>Manage your health profile and keep track of your appointments.</p>
+    <div class="hero-btns">
+        <a href="/my_bookings" class="hero-btn hero-btn-white">📋 My Bookings & Tracking</a>
+        <a href="/clinics" class="hero-btn hero-btn-outline">🏥 Find a Doctor</a>
+    </div>
+</div>
 
-        .success {
-            background: #dcfce7;
-            color: #16a34a;
-            padding: 10px 15px;
-            border-radius: 10px;
-            margin-bottom: 15px;
-            font-size: 14px;
-        }
-    </style>
-</head>
-<body>
+<div class="container" style="max-width: 900px; padding-top: 40px; padding-bottom: 80px;">
 
-    <nav>
-        <div class="logo">Tabibak طبيبك</div>
-        <div class="nav-links">
-            <a href="/clinics" class="nav-link nav-link-blue">🏥 Find Doctor</a>
-            <a href="/my_bookings" class="nav-link nav-link-blue">📋 My Bookings</a>
-            <a href="/patient/logout" class="nav-link nav-link-red">Logout →</a>
-        </div>
-    </nav>
-
-    <div class="hero">
-        <h1>👤 Welcome, {{ patient[1] }}!</h1>
-        <p>Your personal medical profile</p>
-        <div class="hero-btns">
-            <a href="/my_bookings" class="hero-btn hero-btn-white">📋 My Bookings & Tracking →</a>
-            <a href="/clinics" class="hero-btn hero-btn-outline">🏥 Find a Doctor</a>
+    <!-- Patient Info -->
+    <div class="card reveal">
+        <h2>📋 My Information</h2>
+        <div class="info-grid">
+            <div class="info-item">
+                <label>Full Name</label>
+                <p>{{ patient[1] }}</p>
+            </div>
+            <div class="info-item">
+                <label>Age</label>
+                <p>{{ patient[4] }} years old</p>
+            </div>
+            <div class="info-item">
+                <label>Blood Type</label>
+                <p>🩸 {{ patient[5] }}</p>
+            </div>
+            <div class="info-item">
+                <label>Phone</label>
+                <p>📱 {{ patient[6] }}</p>
+            </div>
+            <div class="info-item">
+                <label>Email</label>
+                <p>✉️ {{ patient[2] }}</p>
+            </div>
         </div>
     </div>
 
-    <div class="container">
-
-        <!-- Patient Info -->
-        <div class="card">
-            <h2>📋 My Information</h2>
-            <div class="info-grid">
-                <div class="info-item">
-                    <label>Full Name</label>
-                    <p>{{ patient[1] }}</p>
-                </div>
-                <div class="info-item">
-                    <label>Age</label>
-                    <p>{{ patient[4] }} years old</p>
-                </div>
-                <div class="info-item">
-                    <label>Blood Type</label>
-                    <p>🩸 {{ patient[5] }}</p>
-                </div>
-                <div class="info-item">
-                    <label>Phone</label>
-                    <p>📱 {{ patient[6] }}</p>
-                </div>
-                <div class="info-item">
-                    <label>Email</label>
-                    <p>✉️ {{ patient[2] }}</p>
-                </div>
+    <!-- Active Bookings -->
+    {% if bookings %}
+    <div class="card reveal">
+        <h2>🏥 Active Bookings</h2>
+        {% for booking in bookings %}
+        <div class="booking-row">
+            <div>
+                <h3>{{ booking[6] }}</h3>
+                <p>👨‍⚕️ {{ booking[7] }}</p>
+                <p>👥 {{ booking[8] }} patients waiting</p>
             </div>
+            <div class="booking-wait-block">
+                <div class="booking-wait">{{ booking[8] * booking[9] }}</div>
+                <div class="booking-wait-label">min wait</div>
+            </div>
+            <a href="/my_bookings" class="track-link">📍 Track Live</a>
         </div>
+        {% endfor %}
+    </div>
+    {% endif %}
 
-        <!-- Active Bookings -->
-        {% if bookings %}
-        <div class="card">
-            <h2>🏥 Active Bookings</h2>
-            {% for booking in bookings %}
-            <div class="booking-row">
-                <div>
-                    <h3>{{ booking[6] }}</h3>
-                    <p>👨‍⚕️ {{ booking[7] }}</p>
-                    <p>👥 {{ booking[8] }} patients waiting</p>
-                </div>
-                <div>
-                    <div class="booking-wait">{{ booking[8] * booking[9] }}</div>
-                    <div class="booking-wait-label">min wait</div>
-                </div>
-                <a href="/my_bookings" class="track-link">📍 Track →</a>
+    <!-- Upload Document -->
+    <div class="card reveal">
+        <h2>📤 Upload Medical Document</h2>
+        <p style="color:var(--text-muted); margin-bottom:20px; font-size:15px;">Securely store your prescriptions, test results, and X-rays. Your doctors can review them before you arrive.</p>
+
+        {% if success %}
+        <div class="success">✅ {{ success }}</div>
+        {% endif %}
+
+        <form method="POST" action="/patient/upload" enctype="multipart/form-data" class="upload-form">
+            <input type="text" name="description" placeholder="Description (e.g. Blood test result, X-ray, Prescription...)" required>
+            <div class="file-upload">
+                <input type="file" name="document" id="fileInput" accept="image/*,.pdf" required onchange="updateLabel(this)">
+                <label for="fileInput">📎 Click to choose file</label>
+                <p>Supports: JPG, PNG, PDF (Max 5MB)</p>
+            </div>
+            <button type="submit" class="upload-btn">📤 Upload Document</button>
+        </form>
+    </div>
+
+    <!-- My Documents -->
+    <div class="card reveal">
+        <h2>📁 My Medical Documents</h2>
+        {% if documents %}
+        <div class="documents-grid">
+            {% for doc in documents %}
+            <div class="doc-card">
+                <img src="/static/uploads/{{ doc[2] }}" alt="{{ doc[3] }}" loading="lazy">
+                <p>{{ doc[3] }}</p>
+                <span>{{ doc[4] }}</span>
             </div>
             {% endfor %}
         </div>
+        {% else %}
+        <div class="no-docs">
+            <div style="font-size: 40px; margin-bottom: 10px;">📂</div>
+            No documents uploaded yet.<br>Upload your first medical document above!
+        </div>
         {% endif %}
-
-        <!-- Upload Document -->
-        <div class="card">
-            <h2>📤 Upload Medical Document</h2>
-            <p style="color:#666; margin-bottom:15px; font-size:14px;">Upload photos of your prescriptions, test results, X-rays, or any medical report</p>
-
-            {% if success %}
-            <div class="success">✅ {{ success }}</div>
-            {% endif %}
-
-            <form method="POST" action="/patient/upload" enctype="multipart/form-data" class="upload-form">
-                <input type="text" name="description" placeholder="Description (e.g. Blood test result, X-ray, Prescription...)" required>
-                <div class="file-upload">
-                    <input type="file" name="document" id="fileInput" accept="image/*,.pdf" required onchange="updateLabel(this)">
-                    <label for="fileInput">📎 Click to choose file</label>
-                    <p>Supports: JPG, PNG, PDF</p>
-                </div>
-                <button type="submit" class="upload-btn">📤 Upload Document</button>
-            </form>
-        </div>
-
-        <!-- My Documents -->
-        <div class="card">
-            <h2>📁 My Medical Documents</h2>
-            {% if documents %}
-            <div class="documents-grid">
-                {% for doc in documents %}
-                <div class="doc-card">
-                    <img src="/static/uploads/{{ doc[2] }}" alt="{{ doc[3] }}">
-                    <p>{{ doc[3] }}</p>
-                    <span>{{ doc[4] }}</span>
-                </div>
-                {% endfor %}
-            </div>
-            {% else %}
-            <div class="no-docs">📂 No documents uploaded yet. Upload your first medical document above!</div>
-            {% endif %}
-        </div>
-
     </div>
 
-    <script>
-        function updateLabel(input) {
-            if (input.files && input.files[0]) {
-                document.querySelector('.file-upload label').textContent = '✅ ' + input.files[0].name;
-            }
-        }
-    </script>
+</div>
+{% endblock %}
 
-</body>
-</html>
+{% block extra_scripts %}
+<script>
+    function updateLabel(input) {
+        if (input.files && input.files[0]) {
+            document.querySelector('.file-upload label').innerHTML = '✅ ' + input.files[0].name;
+            document.querySelector('.file-upload').style.borderColor = 'var(--accent)';
+            document.querySelector('.file-upload').style.background = 'rgba(6,214,160,0.1)';
+        }
+    }
+
+    // Scroll Reveal
+    const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) entry.target.classList.add('visible');
+        });
+    }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+{% endblock %}

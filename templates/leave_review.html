@@ -1,104 +1,112 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tabibak - Leave a Review</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, #0ea5e9, #0284c7);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        .box {
-            background: white;
-            border-radius: 20px;
-            padding: 40px;
-            width: 500px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
-        }
-        .logo { font-size: 22px; font-weight: bold; color: #0ea5e9; margin-bottom: 5px; text-align: center; }
-        .clinic-name { text-align: center; font-size: 20px; font-weight: bold; color: #333; margin-bottom: 5px; }
-        .doctor-name { text-align: center; color: #777; margin-bottom: 30px; font-size: 15px; }
+{% extends 'base.html' %}
+{% block title %}Leave a Review - Tabibak{% endblock %}
 
-        /* Star Rating */
-        .star-section { text-align: center; margin-bottom: 25px; }
-        .star-section label { display: block; font-weight: 600; margin-bottom: 15px; color: #333; font-size: 16px; }
-        .stars { display: flex; justify-content: center; gap: 10px; flex-direction: row-reverse; }
-        .stars input { display: none; }
-        .stars label {
-            font-size: 45px;
-            cursor: pointer;
-            color: #e2e8f0;
-            transition: color 0.2s, transform 0.2s;
-            display: block;
-            margin: 0;
-        }
-        .stars label:hover,
-        .stars label:hover ~ label,
-        .stars input:checked ~ label {
-            color: #fbbf24;
-            transform: scale(1.1);
-        }
+{% block extra_head %}
+<style>
+    body {
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        min-height: 100vh;
+    }
+    .review-wrapper {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: calc(100vh - 70px);
+        padding: 40px 20px;
+        margin-top: 70px;
+    }
+    .review-card {
+        background: white;
+        border-radius: 24px;
+        padding: 40px;
+        width: 100%;
+        max-width: 550px;
+        box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+    }
+    .review-logo { font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 800; color: var(--primary); margin-bottom: 5px; text-align: center; }
+    .clinic-name { text-align: center; font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; color: var(--dark); margin-bottom: 5px; }
+    .doctor-name { text-align: center; color: var(--text-muted); margin-bottom: 30px; font-size: 16px; font-weight: 600; }
 
-        .rating-text {
-            margin-top: 10px;
-            font-size: 16px;
-            font-weight: bold;
-            color: #0ea5e9;
-            min-height: 25px;
-        }
+    /* Star Rating */
+    .star-section { text-align: center; margin-bottom: 30px; background: #f8fafc; padding: 20px; border-radius: 16px; }
+    .star-section label.title { display: block; font-weight: 700; margin-bottom: 15px; color: var(--dark); font-size: 16px; }
+    .stars { display: flex; justify-content: center; gap: 5px; flex-direction: row-reverse; }
+    .stars input { display: none; }
+    .stars label.star {
+        font-size: 50px;
+        cursor: pointer;
+        color: #e2e8f0;
+        transition: color 0.2s, transform 0.2s;
+        display: block;
+        margin: 0;
+        line-height: 1;
+    }
+    .stars label.star:hover,
+    .stars label.star:hover ~ label.star,
+    .stars input:checked ~ label.star {
+        color: #fbbf24;
+        transform: scale(1.1);
+    }
 
-        .input-group { margin-bottom: 20px; }
-        .input-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #333; font-size: 14px; }
-        .input-group textarea {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #e2e8f0;
-            border-radius: 10px;
-            font-size: 15px;
-            outline: none;
-            resize: vertical;
-            min-height: 120px;
-            font-family: 'Segoe UI', sans-serif;
-        }
-        .input-group textarea:focus { border-color: #0ea5e9; }
+    .rating-text {
+        margin-top: 15px;
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--primary);
+        min-height: 25px;
+    }
 
-        .submit-btn {
-            width: 100%;
-            padding: 14px;
-            background: #0ea5e9;
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 17px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .submit-btn:hover { background: #0284c7; }
+    .input-group { margin-bottom: 24px; }
+    .input-group label.title { display: block; margin-bottom: 8px; font-weight: 700; color: var(--dark); font-size: 14px; }
+    .input-group textarea {
+        width: 100%;
+        padding: 16px;
+        border: 2px solid #e2e8f0;
+        border-radius: 16px;
+        font-size: 15px;
+        outline: none;
+        resize: vertical;
+        min-height: 140px;
+        font-family: inherit;
+        transition: var(--transition);
+        background: #f8fafc;
+    }
+    .input-group textarea:focus { border-color: var(--primary); background: white; }
 
-        .error {
-            background: #fee2e2;
-            color: #dc2626;
-            padding: 10px;
-            border-radius: 10px;
-            margin-bottom: 15px;
-            font-size: 14px;
-            text-align: center;
-        }
-        .back { text-align: center; margin-top: 15px; }
-        .back a { color: #0ea5e9; text-decoration: none; font-size: 14px; }
-    </style>
-</head>
-<body>
-    <div class="box">
-        <div class="logo">Tabibak طبيبك</div>
+    .submit-btn {
+        width: 100%;
+        padding: 16px;
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        color: white;
+        border: none;
+        border-radius: 16px;
+        font-size: 18px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: var(--transition);
+    }
+    .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(14,165,233,0.3); }
+
+    .error {
+        background: #fee2e2;
+        color: #dc2626;
+        padding: 12px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+        font-size: 14px;
+        text-align: center;
+        font-weight: 600;
+    }
+    .back { text-align: center; margin-top: 20px; }
+    .back a { color: var(--text-muted); text-decoration: none; font-size: 15px; font-weight: 600; transition: var(--transition); }
+    .back a:hover { color: var(--primary); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="review-wrapper">
+    <div class="review-card">
+        <div class="review-logo">Tabibak</div>
         <div class="clinic-name">{{ clinic[1] }}</div>
         <div class="doctor-name">👨‍⚕️ {{ clinic[2] }} • {{ clinic[3] }}</div>
 
@@ -111,25 +119,25 @@
             <input type="hidden" name="booking_id" value="{{ booking_id }}">
 
             <div class="star-section">
-                <label>How would you rate your experience?</label>
+                <label class="title">How would you rate your experience?</label>
                 <div class="stars">
                     <input type="radio" name="rating" id="star5" value="5">
-                    <label for="star5" title="5 stars" onclick="updateRating(5)">⭐</label>
+                    <label class="star" for="star5" title="5 stars" onclick="updateRating(5)">⭐</label>
                     <input type="radio" name="rating" id="star4" value="4">
-                    <label for="star4" title="4 stars" onclick="updateRating(4)">⭐</label>
+                    <label class="star" for="star4" title="4 stars" onclick="updateRating(4)">⭐</label>
                     <input type="radio" name="rating" id="star3" value="3">
-                    <label for="star3" title="3 stars" onclick="updateRating(3)">⭐</label>
+                    <label class="star" for="star3" title="3 stars" onclick="updateRating(3)">⭐</label>
                     <input type="radio" name="rating" id="star2" value="2">
-                    <label for="star2" title="2 stars" onclick="updateRating(2)">⭐</label>
-                    <input type="radio" name="rating" id="star1" value="1">
-                    <label for="star1" title="1 star" onclick="updateRating(1)">⭐</label>
+                    <label class="star" for="star2" title="2 stars" onclick="updateRating(2)">⭐</label>
+                    <input type="radio" name="rating" id="star1" value="1" required>
+                    <label class="star" for="star1" title="1 star" onclick="updateRating(1)">⭐</label>
                 </div>
-                <div class="rating-text" id="ratingText">Click to rate</div>
+                <div class="rating-text" id="ratingText">Select a rating</div>
             </div>
 
             <div class="input-group">
-                <label>Tell us about your experience</label>
-                <textarea name="comment" placeholder="How was the doctor? Was the wait time accurate? Would you recommend this clinic?"></textarea>
+                <label class="title">Tell us about your experience</label>
+                <textarea name="comment" placeholder="How was the doctor? Was the wait time accurate? Would you recommend this clinic? Your review helps others make better choices."></textarea>
             </div>
 
             <button type="submit" class="submit-btn">⭐ Submit Review</button>
@@ -139,19 +147,21 @@
             <a href="/my_bookings">← Back to My Bookings</a>
         </div>
     </div>
+</div>
+{% endblock %}
 
-    <script>
-        const ratingTexts = {
-            1: "⭐ Poor — Not recommended",
-            2: "⭐⭐ Fair — Below average",
-            3: "⭐⭐⭐ Good — Average experience",
-            4: "⭐⭐⭐⭐ Very Good — Recommended!",
-            5: "⭐⭐⭐⭐⭐ Excellent — Highly recommended!"
-        };
+{% block extra_scripts %}
+<script>
+    const ratingTexts = {
+        1: "⭐ Poor — Not recommended",
+        2: "⭐⭐ Fair — Below average",
+        3: "⭐⭐⭐ Good — Average experience",
+        4: "⭐⭐⭐⭐ Very Good — Recommended!",
+        5: "⭐⭐⭐⭐⭐ Excellent — Highly recommended!"
+    };
 
-        function updateRating(stars) {
-            document.getElementById('ratingText').textContent = ratingTexts[stars];
-        }
-    </script>
-</body>
-</html>
+    function updateRating(stars) {
+        document.getElementById('ratingText').textContent = ratingTexts[stars];
+    }
+</script>
+{% endblock %}

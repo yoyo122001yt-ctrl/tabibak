@@ -1,69 +1,83 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tabibak - Patient Login</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, #0ea5e9, #0284c7);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .login-box {
-            background: white;
-            border-radius: 20px;
-            padding: 50px 40px;
-            width: 400px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
-            text-align: center;
-        }
-        .logo { font-size: 28px; font-weight: bold; color: #0ea5e9; margin-bottom: 5px; }
-        .subtitle { color: #999; margin-bottom: 30px; font-size: 15px; }
-        .input-group { margin-bottom: 20px; text-align: left; }
-        .input-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #333; }
-        .input-group input {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #e2e8f0;
-            border-radius: 10px;
-            font-size: 16px;
-            outline: none;
-            transition: border 0.2s;
-        }
-        .input-group input:focus { border-color: #0ea5e9; }
-        .login-btn {
-            width: 100%;
-            padding: 14px;
-            background: #0ea5e9;
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        .login-btn:hover { background: #0284c7; }
-        .error {
-            background: #fee2e2;
-            color: #dc2626;
-            padding: 10px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            font-size: 14px;
-        }
-        .links { margin-top: 20px; font-size: 14px; color: #666; }
-        .links a { color: #0ea5e9; text-decoration: none; font-weight: 600; }
-    </style>
-</head>
-<body>
-    <div class="login-box">
-        <div class="logo">Tabibak طبيبك</div>
-        <div class="subtitle">Patient Portal — Sign in to your account</div>
+{% extends 'base.html' %}
+{% block title %}Patient Login - Tabibak{% endblock %}
+
+{% block extra_head %}
+<style>
+    body {
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        min-height: 100vh;
+    }
+    .auth-wrapper {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: calc(100vh - 70px);
+        padding: 40px 20px;
+        margin-top: 70px;
+    }
+    .auth-card {
+        background: white;
+        border-radius: 24px;
+        padding: 50px 40px;
+        width: 100%;
+        max-width: 420px;
+        box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+        text-align: center;
+        position: relative;
+    }
+    .auth-logo { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; color: var(--primary); margin-bottom: 5px; }
+    .auth-subtitle { color: var(--text-muted); margin-bottom: 30px; font-size: 15px; }
+    
+    .input-group { margin-bottom: 20px; text-align: left; }
+    .input-group label { display: block; margin-bottom: 8px; font-weight: 700; color: var(--dark); font-size: 14px; }
+    .input-group input {
+        width: 100%;
+        padding: 14px 16px;
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        font-size: 15px;
+        font-family: inherit;
+        outline: none;
+        transition: var(--transition);
+        background: #f8fafc;
+    }
+    .input-group input:focus { border-color: var(--primary); background: white; }
+    
+    .auth-btn {
+        width: 100%;
+        padding: 14px;
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: var(--transition);
+        margin-bottom: 20px;
+    }
+    .auth-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(14,165,233,0.3); }
+    
+    .error {
+        background: #fee2e2;
+        color: #dc2626;
+        padding: 12px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+        font-size: 14px;
+        font-weight: 600;
+    }
+    
+    .auth-links { font-size: 14px; color: var(--text-muted); }
+    .auth-links a { color: var(--primary); text-decoration: none; font-weight: 700; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+    <div class="auth-card">
+        <div class="auth-logo">Tabibak <em>طبيبك</em></div>
+        <div class="auth-subtitle" data-t="patient_desc">Patient Portal — Sign in to your account</div>
 
         {% if error %}
         <div class="error">❌ {{ error }}</div>
@@ -78,15 +92,12 @@
                 <label>Password</label>
                 <input type="password" name="password" placeholder="••••••••" required>
             </div>
-            <button type="submit" class="login-btn">Login →</button>
+            <button type="submit" class="auth-btn">Login →</button>
         </form>
 
-        <div class="links">
-            Don't have an account? <a href="/patient/register">Register here</a>
-        </div>
-        <div class="links" style="margin-top:8px;">
-            <a href="/">← Back to Tabibak</a>
+        <div class="auth-links">
+            Don't have an account? <a href="/patient/register" data-t="create_account">Register here</a>
         </div>
     </div>
-</body>
-</html>
+</div>
+{% endblock %}
