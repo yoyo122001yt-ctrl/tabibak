@@ -311,7 +311,7 @@
         <div class="documents-grid">
             {% for doc in documents %}
             <div class="doc-card">
-                <img src="/static/uploads/{{ doc[2] }}" alt="{{ doc[3] }}" loading="lazy">
+                <img src="{{ url_for('static', filename='uploads/' ~ doc[2]) }}" alt="{{ doc[3] }}" loading="lazy">
                 <p>{{ doc[3] }}</p>
                 <span>{{ doc[4] }}</span>
             </div>

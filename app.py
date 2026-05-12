@@ -11,11 +11,14 @@ app = Flask(__name__)
 # Use environment variable for secret key in production
 app.secret_key = os.environ.get("SECRET_KEY", "tabibak_secret_123")
 
-UPLOAD_FOLDER = os.path.join("static", "uploads")
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+UPLOAD_FOLDER = os.path.join(BASE_DIR, "static", "uploads")
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "pdf"}
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024  # 16MB upload limit
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+DB_PATH = os.path.join(BASE_DIR, "tabibak.db")
 
 # ============ HELPER FUNCTIONS ============
 
@@ -32,7 +35,7 @@ def safe_int(value, default=None):
 
 def get_db():
     """Get database connection with row factory for named columns"""
-    conn = sqlite3.connect("tabibak.db")
+    conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     return conn
 
@@ -642,7 +645,7 @@ def submit_review():
 
 def init_db():
     """Initialize database with tables if they don't exist"""
-    conn = sqlite3.connect("tabibak.db")
+    conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     
     # Create clinics table
@@ -730,7 +733,7 @@ def init_db():
     print("✅ Database initialized successfully!")
 
 # Run database initialization
-if not os.path.exists("tabibak.db"):
+if not os.path.exists(DB_PATH):
     init_db()
 
 if __name__ == "__main__":
