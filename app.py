@@ -1,7 +1,8 @@
-from flask import Flask, render_template, request, redirect, session, jsonify
+from flask import Flask, render_template, request, redirect, session, jsonify, flash
 import sqlite3
 import os
 import math
+import secrets
 from datetime import datetime
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -534,6 +535,33 @@ def patient_logout():
 # Get admin password from environment variable (SECURITY FIX)
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "tabibak_admin_2026")
 
+def ensure_admin_schema():
+    """Make sure audit log table exists"""
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS admin_audit_log (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            action TEXT NOT NULL,
+            detail TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    conn.commit()
+    conn.close()
+
+def audit_log_entry(action, detail=""):
+    """Write one row to the admin audit log"""
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO admin_audit_log (action, detail, created_at) VALUES (?, ?, ?)",
+                      (action, detail, datetime.now()))
+        conn.commit()
+        conn.close()
+    except Exception:
+        pass
+
 @app.route("/admin/login", methods=["GET", "POST"])
 def admin_login():
     if request.method == "POST":
@@ -546,47 +574,212 @@ def admin_login():
 @app.route("/admin")
 @login_required('admin')
 def admin():
+    ensure_admin_schema()
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM doctors")
+
+    # --- Filters ---
+    filter_q = request.args.get('q', '').strip()
+    filter_status = request.args.get('status', 'all')
+
+    # --- Doctors (with optional clinic name join) ---
+    doctor_query = """
+        SELECT doctors.*, clinics.name as clinic_name
+        FROM doctors
+        LEFT JOIN clinics ON doctors.clinic_id = clinics.id
+        WHERE 1=1
+    """
+    params = []
+    if filter_q:
+        doctor_query += " AND (doctors.name LIKE ? OR doctors.email LIKE ? OR clinics.name LIKE ?)"
+        like = f"%{filter_q}%"
+        params.extend([like, like, like])
+    if filter_status != 'all':
+        doctor_query += " AND doctors.status = ?"
+        params.append(filter_status)
+    doctor_query += " ORDER BY doctors.id DESC"
+    cursor.execute(doctor_query, params)
     doctors = cursor.fetchall()
+
+    # --- Pending list (always unfiltered) ---
+    cursor.execute("""
+        SELECT doctors.*, clinics.name as clinic_name
+        FROM doctors
+        LEFT JOIN clinics ON doctors.clinic_id = clinics.id
+        WHERE doctors.status = 'pending'
+        ORDER BY doctors.id DESC
+    """)
+    pending_list = cursor.fetchall()
+
+    # --- Counts ---
     cursor.execute("SELECT COUNT(*) as count FROM doctors WHERE status = 'pending'")
     pending_doctors = cursor.fetchone()['count']
     cursor.execute("SELECT COUNT(*) as count FROM patients")
     total_patients = cursor.fetchone()['count']
     cursor.execute("SELECT COUNT(*) as count FROM clinics")
     total_clinics = cursor.fetchone()['count']
+    cursor.execute("SELECT COUNT(*) as count FROM bookings WHERE status = 'waiting'")
+    bookings_waiting = cursor.fetchone()['count']
+
+    # --- Queue alerts ---
+    cursor.execute("""
+        SELECT id, name, doctor, patients_waiting, minutes_per_patient,
+               patients_waiting * minutes_per_patient as est_wait, is_open
+        FROM clinics
+        WHERE is_open = 1 AND (patients_waiting >= 10 OR patients_waiting * minutes_per_patient >= 120)
+    """)
+    queue_hot = cursor.fetchall()
+
+    cursor.execute("""
+        SELECT id, name, doctor, patients_waiting, minutes_per_patient,
+               patients_waiting * minutes_per_patient as est_wait, is_open
+        FROM clinics
+        WHERE is_open = 0 AND patients_waiting > 0
+    """)
+    queue_closed_busy = cursor.fetchall()
+
+    # --- Recent bookings ---
+    cursor.execute("""
+        SELECT bookings.id, bookings.booked_at, bookings.status, bookings.arrived,
+               patients.name, patients.email, patients.id as patient_id,
+               clinics.name as clinic_name
+        FROM bookings
+        JOIN patients ON bookings.patient_id = patients.id
+        JOIN clinics ON bookings.clinic_id = clinics.id
+        ORDER BY bookings.booked_at DESC
+        LIMIT 40
+    """)
+    recent_bookings = cursor.fetchall()
+
+    # --- Audit log ---
+    cursor.execute("SELECT * FROM admin_audit_log ORDER BY created_at DESC LIMIT 30")
+    audit_log = cursor.fetchall()
+
+    # --- CSRF token ---
+    if 'csrf_token' not in session:
+        import secrets
+        session['csrf_token'] = secrets.token_hex(16)
+
     conn.close()
     return render_template("admin.html",
         doctors=doctors,
         total_doctors=len(doctors),
         pending_doctors=pending_doctors,
+        pending_list=pending_list,
         total_patients=total_patients,
-        total_clinics=total_clinics)
+        total_clinics=total_clinics,
+        bookings_waiting=bookings_waiting,
+        queue_hot=queue_hot,
+        queue_closed_busy=queue_closed_busy,
+        recent_bookings=recent_bookings,
+        audit_log=audit_log,
+        filter_q=filter_q,
+        filter_status=filter_status,
+        csrf_token=session.get('csrf_token', ''))
 
-@app.route("/admin/approve/<int:doctor_id>")
+@app.route("/admin/approve/<int:doctor_id>", methods=["GET", "POST"])
 @login_required('admin')
 def approve_doctor(doctor_id):
     conn = get_db()
     cursor = conn.cursor()
+    cursor.execute("SELECT name FROM doctors WHERE id = ?", (doctor_id,))
+    doc = cursor.fetchone()
     cursor.execute("UPDATE doctors SET status = 'approved' WHERE id = ?", (doctor_id,))
     cursor.execute("UPDATE clinics SET is_open = 1 WHERE id = (SELECT clinic_id FROM doctors WHERE id = ?)", (doctor_id,))
     conn.commit()
     conn.close()
+    if doc:
+        audit_log_entry("APPROVE", f"Approved doctor: {doc['name']} (id={doctor_id})")
     return redirect("/admin")
 
-@app.route("/admin/reject/<int:doctor_id>")
+@app.route("/admin/reject/<int:doctor_id>", methods=["GET", "POST"])
 @login_required('admin')
 def reject_doctor(doctor_id):
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute("SELECT clinic_id FROM doctors WHERE id = ?", (doctor_id,))
-    result = cursor.fetchone()
-    if result:
-        cursor.execute("DELETE FROM clinics WHERE id = ?", (result['clinic_id'],))
+    cursor.execute("SELECT name, clinic_id FROM doctors WHERE id = ?", (doctor_id,))
+    doc = cursor.fetchone()
+    if doc:
+        cursor.execute("DELETE FROM clinics WHERE id = ?", (doc['clinic_id'],))
+        audit_log_entry("REJECT", f"Rejected doctor: {doc['name']} (id={doctor_id})")
     cursor.execute("DELETE FROM doctors WHERE id = ?", (doctor_id,))
     conn.commit()
     conn.close()
+    return redirect("/admin")
+
+@app.route("/admin/add_doctor", methods=["POST"])
+@login_required('admin')
+def admin_add_doctor():
+    name = request.form.get("name", "").strip()
+    email = request.form.get("email", "").strip().lower()
+    password = request.form.get("password", "")
+    phone = request.form.get("phone", "").strip()
+    clinic_name = request.form.get("clinic_name", "").strip()
+    specialty = request.form.get("specialty", "").strip()
+    minutes_per_patient = safe_int(request.form.get("minutes_per_patient"), 15)
+    address = request.form.get("address", "Cairo, Egypt").strip()
+    latitude = request.form.get("latitude", "30.0444").strip()
+    longitude = request.form.get("longitude", "31.2357").strip()
+
+    if not name or not email or not password or not clinic_name or not specialty:
+        from flask import flash
+        flash("All required fields must be filled.", "error")
+        return redirect("/admin")
+
+    try:
+        lat = float(latitude) if latitude else 30.0444
+        lng = float(longitude) if longitude else 31.2357
+    except ValueError:
+        lat, lng = 30.0444, 31.2357
+
+    hashed_password = generate_password_hash(password)
+
+    conn = get_db()
+    cursor = conn.cursor()
+
+    # Check duplicate email
+    cursor.execute("SELECT id FROM doctors WHERE email = ?", (email,))
+    if cursor.fetchone():
+        from flask import flash
+        flash(f"Email {email} already exists.", "error")
+        conn.close()
+        return redirect("/admin")
+
+    cursor.execute("""INSERT INTO clinics (name, doctor, specialty, patients_waiting, minutes_per_patient, is_open, latitude, longitude, address)
+                   VALUES (?, ?, ?, 0, ?, 1, ?, ?, ?)""",
+                  (clinic_name, name, specialty, minutes_per_patient, lat, lng, address))
+    clinic_id = cursor.lastrowid
+
+    cursor.execute("""INSERT INTO doctors (name, email, password, clinic_id, is_arrived, phone, specialty, status)
+                   VALUES (?, ?, ?, ?, 0, ?, ?, 'approved')""",
+                  (name, email, hashed_password, clinic_id, phone, specialty))
+
+    conn.commit()
+    conn.close()
+    audit_log_entry("ADD_DOCTOR", f"Added doctor: {name} ({email}) with clinic: {clinic_name}")
+    from flask import flash
+    flash(f"Doctor {name} and clinic {clinic_name} created successfully!", "success")
+    return redirect("/admin")
+
+@app.route("/admin/delete_doctor/<int:doctor_id>", methods=["POST"])
+@login_required('admin')
+def admin_delete_doctor(doctor_id):
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT name, clinic_id FROM doctors WHERE id = ?", (doctor_id,))
+    doc = cursor.fetchone()
+    if doc:
+        clinic_id = doc['clinic_id']
+        # Clean up related data
+        cursor.execute("DELETE FROM bookings WHERE clinic_id = ?", (clinic_id,))
+        cursor.execute("DELETE FROM reviews WHERE clinic_id = ?", (clinic_id,))
+        cursor.execute("DELETE FROM clinics WHERE id = ?", (clinic_id,))
+        cursor.execute("DELETE FROM doctors WHERE id = ?", (doctor_id,))
+        audit_log_entry("DELETE", f"Deleted doctor: {doc['name']} (id={doctor_id}) and clinic_id={clinic_id}")
+    conn.commit()
+    conn.close()
+    from flask import flash
+    flash("Doctor and clinic deleted.", "success")
     return redirect("/admin")
 
 @app.route("/admin/logout")
