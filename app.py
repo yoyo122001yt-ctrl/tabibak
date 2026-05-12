@@ -118,11 +118,16 @@ def check_arrival():
     if "patient_id" not in session:
         return jsonify({"error": "not logged in"}), 401
 
-    data = request.get_json()
+    data = request.get_json() or {}
     patient_lat = data.get("lat")
     patient_lng = data.get("lng")
 
-    if not patient_lat or not patient_lng:
+    if patient_lat is None or patient_lng is None:
+        return jsonify({"error": "no location"}), 400
+    try:
+        patient_lat = float(patient_lat)
+        patient_lng = float(patient_lng)
+    except (TypeError, ValueError):
         return jsonify({"error": "no location"}), 400
 
     conn = sqlite3.connect("tabibak.db")
@@ -232,27 +237,10 @@ def doctor_dashboard():
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM clinics WHERE id = ?", (session["clinic_id"],))
     clinic = cursor.fetchone()
-    cursor.execute("""
-        SELECT patients.* FROM patients
-        JOIN medical_documents ON patients.id = medical_documents.patient_id
-        GROUP BY patients.id
-    """)
-    patients = cursor.fetchall()
-    # Get arrived patients
-    cursor.execute("""
-        SELECT patients.name, patients.phone, bookings.booked_at
-        FROM bookings
-        JOIN patients ON bookings.patient_id = patients.id
-        WHERE bookings.clinic_id = ? AND bookings.arrived = 1 AND bookings.status = 'waiting'
-        ORDER BY bookings.booked_at DESC
-    """, (session["clinic_id"],))
-    arrived_patients = cursor.fetchall()
     conn.close()
     return render_template("doctor_dashboard.html",
         doctor=session["doctor_name"],
-        clinic=clinic,
-        patients=patients,
-        arrived_patients=arrived_patients)
+        clinic=clinic)
 
 @app.route("/doctor/patient/<int:patient_id>")
 def doctor_view_patient(patient_id):
@@ -260,8 +248,22 @@ def doctor_view_patient(patient_id):
         return redirect("/doctor/login")
     conn = sqlite3.connect("tabibak.db")
     cursor = conn.cursor()
+    cursor.execute(
+        """
+        SELECT 1 FROM bookings
+        WHERE patient_id = ? AND clinic_id = ?
+        LIMIT 1
+        """,
+        (patient_id, session["clinic_id"]),
+    )
+    if not cursor.fetchone():
+        conn.close()
+        return redirect("/doctor/dashboard")
     cursor.execute("SELECT * FROM patients WHERE id = ?", (patient_id,))
     patient = cursor.fetchone()
+    if not patient:
+        conn.close()
+        return redirect("/doctor/dashboard")
     cursor.execute("SELECT * FROM medical_documents WHERE patient_id = ?", (patient_id,))
     documents = cursor.fetchall()
     conn.close()
