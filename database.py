@@ -84,6 +84,16 @@ cursor.execute("""
     )
 """)
 
+# Admin audit log (optional; app also creates via ensure_admin_schema)
+cursor.execute("""
+    CREATE TABLE IF NOT EXISTS admin_audit_log (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        action TEXT NOT NULL,
+        detail TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+""")
+
 # Add columns if they don't exist
 for col, table, definition in [
     ("latitude", "clinics", "REAL DEFAULT 0"),

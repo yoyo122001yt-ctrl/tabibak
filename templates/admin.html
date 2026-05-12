@@ -3,163 +3,571 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tabibak - Admin Panel</title>
+    <title>Tabibak — Admin Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --bg: #0f172a;
+            --panel: #1e293b;
+            --border: rgba(148, 163, 184, 0.15);
+            --text: #f1f5f9;
+            --muted: #94a3b8;
+            --accent: #0ea5e9;
+            --accent2: #22c55e;
+            --danger: #ef4444;
+            --warn: #f59e0b;
+            --radius: 14px;
+        }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', sans-serif; background: #f8fafc; color: #333; }
+        body {
+            font-family: 'DM Sans', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+        .layout {
+            display: grid;
+            grid-template-columns: 260px 1fr;
+            min-height: 100vh;
+        }
+        @media (max-width: 900px) {
+            .layout { grid-template-columns: 1fr; }
+            .sidebar { position: sticky; top: 0; z-index: 10; }
+        }
 
-        nav {
-            background: #1e293b;
-            padding: 15px 40px;
+        .sidebar {
+            background: linear-gradient(180deg, #0c1222 0%, var(--panel) 100%);
+            border-right: 1px solid var(--border);
+            padding: 28px 22px;
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            flex-direction: column;
+            gap: 24px;
         }
-        .logo { font-size: 24px; font-weight: bold; color: #0ea5e9; }
-        .logout { color: #94a3b8; text-decoration: none; font-weight: 600; }
+        .brand {
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 1.35rem;
+            color: var(--accent);
+        }
+        .brand span { color: var(--muted); font-weight: 600; font-size: 0.75rem; display: block; margin-top: 4px; }
+        .nav-links { display: flex; flex-direction: column; gap: 6px; }
+        .nav-links a {
+            color: var(--muted);
+            text-decoration: none;
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-size: 0.92rem;
+            font-weight: 500;
+            transition: background 0.2s, color 0.2s;
+        }
+        .nav-links a:hover { background: rgba(14, 165, 233, 0.12); color: var(--text); }
 
-        .hero {
-            background: linear-gradient(135deg, #1e293b, #334155);
-            color: white;
-            padding: 40px;
-            text-align: center;
+        .main { padding: 28px 32px 48px; overflow-x: auto; }
+        .topbar { margin-bottom: 24px; }
+        .topbar h1 {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.65rem;
+            font-weight: 800;
         }
-        .hero h1 { font-size: 30px; margin-bottom: 10px; }
-        .hero p { opacity: 0.7; }
+        .topbar p { color: var(--muted); font-size: 0.9rem; margin-top: 6px; max-width: 640px; line-height: 1.5; }
 
-        .container {
-            max-width: 900px;
-            margin: 30px auto;
-            padding: 0 20px;
+        .flash {
+            padding: 12px 16px;
+            border-radius: var(--radius);
+            margin-bottom: 16px;
+            font-size: 0.92rem;
+            font-weight: 500;
         }
+        .flash.success { background: rgba(34, 197, 94, 0.15); color: #86efac; border: 1px solid rgba(34, 197, 94, 0.35); }
+        .flash.error { background: rgba(239, 68, 68, 0.12); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.35); }
 
         .stats {
-            display: flex;
-            gap: 20px;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 12px;
+            margin-bottom: 22px;
         }
-        .stat-card {
-            background: white;
-            border-radius: 16px;
-            padding: 20px;
-            flex: 1;
+        .stat {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px;
             text-align: center;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-            min-width: 150px;
         }
-        .stat-number { font-size: 40px; font-weight: bold; color: #0ea5e9; }
-        .stat-label { color: #999; font-size: 14px; }
+        .stat-num {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.65rem;
+            font-weight: 800;
+            color: var(--accent);
+        }
+        .stat-label { color: var(--muted); font-size: 0.72rem; margin-top: 6px; text-transform: uppercase; letter-spacing: 0.06em; }
 
         .card {
-            background: white;
-            border-radius: 16px;
-            padding: 25px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 22px 24px;
+            margin-bottom: 22px;
         }
-        .card h2 { font-size: 20px; margin-bottom: 20px; color: #333; }
+        .card h2 {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.08rem;
+            font-weight: 700;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .card-sub { color: var(--muted); font-size: 0.86rem; margin: -8px 0 14px; line-height: 1.45; }
+
+        .alert-banner {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.35);
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin-bottom: 10px;
+            font-size: 0.88rem;
+        }
+        .alert-banner.warn { color: #fcd34d; }
+        .alert-banner.danger { background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.35); color: #fecaca; }
+
+        .filter-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: flex-end;
+            margin-bottom: 8px;
+        }
+        .filter-bar label { display: flex; flex-direction: column; gap: 6px; font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+        .filter-bar input, .filter-bar select {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 9px 12px;
+            color: var(--text);
+            font-family: inherit;
+            min-width: 200px;
+        }
+        .filter-bar select { min-width: 140px; cursor: pointer; }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 14px;
+        }
+        .form-grid label {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .form-grid input, .form-grid select {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 10px 12px;
+            color: var(--text);
+            font-size: 0.95rem;
+            font-family: inherit;
+        }
+        .form-grid input:focus { outline: none; border-color: var(--accent); }
+        .form-actions { margin-top: 18px; display: flex; gap: 12px; flex-wrap: wrap; }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 11px 22px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            font-family: inherit;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+            transition: transform 0.15s;
+        }
+        .btn:hover { transform: translateY(-1px); }
+        .btn-primary { background: linear-gradient(135deg, var(--accent), #0284c7); color: white; }
+        .btn-secondary { background: var(--panel); color: var(--text); border: 1px solid var(--border); }
 
         .doctor-row {
             display: flex;
-            justify-content: space-between;
+            flex-wrap: wrap;
             align-items: center;
-            padding: 15px;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 14px 16px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border);
             border-radius: 12px;
             margin-bottom: 10px;
-            background: #f8fafc;
-            flex-wrap: wrap;
-            gap: 10px;
         }
-        .doctor-info h3 { font-size: 16px; margin-bottom: 3px; }
-        .doctor-info p { font-size: 13px; color: #777; }
+        .doctor-info h3 { font-size: 1rem; font-weight: 600; margin-bottom: 4px; }
+        .doctor-info p { font-size: 0.82rem; color: var(--muted); line-height: 1.45; }
+        .clinic-tag { color: #7dd3fc; font-size: 0.82rem; }
 
         .badge {
-            padding: 5px 12px;
-            border-radius: 50px;
-            font-size: 12px;
-            font-weight: bold;
+            padding: 4px 11px;
+            border-radius: 999px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
         }
-        .badge-pending { background: #fefce8; color: #854d0e; }
-        .badge-approved { background: #dcfce7; color: #16a34a; }
+        .badge-pending { background: rgba(234, 179, 8, 0.2); color: #fde047; }
+        .badge-approved { background: rgba(34, 197, 94, 0.2); color: #86efac; }
+        .badge-wait { background: rgba(14, 165, 233, 0.2); color: #7dd3fc; }
 
-        .action-btns { display: flex; gap: 8px; }
+        .action-btns { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
         .btn-approve {
-            background: #16a34a;
-            color: white;
-            padding: 8px 16px;
+            background: var(--accent2);
+            color: #052e16;
+            padding: 8px 14px;
             border-radius: 8px;
-            text-decoration: none;
-            font-size: 13px;
-            font-weight: bold;
+            border: none;
+            font-size: 0.82rem;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: inherit;
         }
         .btn-reject {
-            background: #dc2626;
-            color: white;
-            padding: 8px 16px;
+            background: rgba(239, 68, 68, 0.25);
+            color: #fecaca;
+            padding: 8px 14px;
             border-radius: 8px;
-            text-decoration: none;
-            font-size: 13px;
-            font-weight: bold;
+            border: none;
+            font-size: 0.82rem;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: inherit;
         }
-        .no-data { color: #999; text-align: center; padding: 20px; }
+        .btn-delete {
+            background: rgba(239, 68, 68, 0.35);
+            color: white;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        .btn-delete:hover { background: var(--danger); }
+
+        .table-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid var(--border); }
+        table { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
+        th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border); vertical-align: top; }
+        th {
+            background: rgba(15, 23, 42, 0.9);
+            color: var(--muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.68rem;
+            letter-spacing: 0.06em;
+        }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: rgba(14, 165, 233, 0.04); }
+        .no-data { color: var(--muted); text-align: center; padding: 24px; font-size: 0.9rem; }
+        .mono { font-family: ui-monospace, monospace; font-size: 0.8rem; color: var(--muted); }
+        .inline-form { display: inline; }
     </style>
 </head>
 <body>
+    <div class="layout">
+        <aside class="sidebar">
+            <div class="brand">Tabibak <span>Admin</span></div>
+            <nav class="nav-links">
+                <a href="{{ url_for('admin') }}">Dashboard</a>
+                <a href="/">← Public site</a>
+                <a href="{{ url_for('admin_logout') }}">Log out</a>
+            </nav>
+        </aside>
 
-    <nav>
-        <div class="logo">Tabibak Admin ⚙️</div>
-        <a href="/" class="logout">← Back to site</a>
-    </nav>
+        <div class="main">
+            <div class="topbar">
+                <h1>Operations dashboard</h1>
+                <p>Live bookings, queue pressure, doctor search, and a full audit trail. Approve, reject, add, and delete actions use POST with a session token (no one-click GET links).</p>
+            </div>
 
-    <div class="hero">
-        <h1>⚙️ Admin Panel</h1>
-        <p>Manage doctors, clinics and patients</p>
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="flash {{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <div class="stats">
+                <div class="stat">
+                    <div class="stat-num">{{ total_doctors }}</div>
+                    <div class="stat-label">Doctors</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-num">{{ pending_doctors }}</div>
+                    <div class="stat-label">Pending</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-num">{{ bookings_waiting }}</div>
+                    <div class="stat-label">Bookings waiting</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-num">{{ total_patients }}</div>
+                    <div class="stat-label">Patients</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-num">{{ total_clinics }}</div>
+                    <div class="stat-label">Clinics</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>⚠️ Queue attention</h2>
+                <p class="card-sub">Open clinics with long estimated wait (≥10 in queue or ≥120 estimated minutes), or closed clinics that still show people waiting.</p>
+                {% for c in queue_hot %}
+                <div class="alert-banner warn">
+                    <strong>{{ c[1] }}</strong> — {{ c[2] }} · {{ c[3] }} waiting · ~{{ c[5] }} min estimated ({{ c[4] }} min/patient)
+                </div>
+                {% endfor %}
+                {% for c in queue_closed_busy %}
+                <div class="alert-banner danger">
+                    <strong>{{ c[1] }}</strong> is <strong>closed</strong> but still shows <strong>{{ c[3] }}</strong> waiting — doctor may need to clear the queue or reopen.
+                </div>
+                {% endfor %}
+                {% if not queue_hot and not queue_closed_busy %}
+                <div class="no-data">No queue alerts right now.</div>
+                {% endif %}
+            </div>
+
+            <div class="card">
+                <h2>📅 Recent bookings</h2>
+                <p class="card-sub">Latest 40 rows across all clinics (status = waiting in your app means still in queue).</p>
+                {% if recent_bookings|length == 0 %}
+                    <div class="no-data">No bookings yet.</div>
+                {% else %}
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>When</th>
+                                    <th>Patient</th>
+                                    <th>Clinic</th>
+                                    <th>Status</th>
+                                    <th>Arrived</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for b in recent_bookings %}
+                                <tr>
+                                    <td class="mono">{{ b[1] }}</td>
+                                    <td>{{ b[4] }}<br><span class="mono">{{ b[5] }}</span></td>
+                                    <td>{{ b[7] }}</td>
+                                    <td><span class="badge badge-wait">{{ b[2] }}</span></td>
+                                    <td>{% if b[3] %}✅{% else %}—{% endif %}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="card">
+                <h2>🔎 Find doctors</h2>
+                <p class="card-sub">Search name, email, or clinic. Combine with status. Results apply to the table below only; pending inbox still shows every pending registration.</p>
+                <form class="filter-bar" method="get" action="{{ url_for('admin') }}">
+                    <label>Search
+                        <input type="search" name="q" value="{{ filter_q }}" placeholder="Name, email, clinic…">
+                    </label>
+                    <label>Status
+                        <select name="status">
+                            <option value="all" {% if filter_status == 'all' %}selected{% endif %}>All</option>
+                            <option value="pending" {% if filter_status == 'pending' %}selected{% endif %}>Pending</option>
+                            <option value="approved" {% if filter_status == 'approved' %}selected{% endif %}>Approved</option>
+                        </select>
+                    </label>
+                    <button type="submit" class="btn btn-primary" style="padding:9px 18px;">Apply</button>
+                    {% if filter_q or filter_status != 'all' %}
+                    <a href="{{ url_for('admin') }}" class="btn btn-secondary" style="padding:9px 18px;">Clear</a>
+                    {% endif %}
+                </form>
+                {% if filter_q or filter_status != 'all' %}
+                <p style="color:var(--muted);font-size:0.85rem;margin-top:8px;">Showing <strong>{{ doctors|length }}</strong> doctor(s) matching filters.</p>
+                {% endif %}
+            </div>
+
+            <div class="card">
+                <h2>➕ Add doctor (pre-approved)</h2>
+                <p class="card-sub">Creates a clinic and an approved doctor. Default map pin is Cairo if coordinates are blank.</p>
+                <form method="post" action="{{ url_for('admin_add_doctor') }}" autocomplete="off">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                    <input type="hidden" name="return_q" value="{{ filter_q }}">
+                    <input type="hidden" name="return_status" value="{{ filter_status }}">
+                    <div class="form-grid">
+                        <label>Doctor name *
+                            <input type="text" name="name" required placeholder="Dr. Example">
+                        </label>
+                        <label>Email *
+                            <input type="email" name="email" required placeholder="doctor@clinic.com">
+                        </label>
+                        <label>Password *
+                            <input type="text" name="password" required placeholder="Temporary password">
+                        </label>
+                        <label>Phone *
+                            <input type="text" name="phone" required placeholder="01xxxxxxxxx">
+                        </label>
+                        <label>Clinic name *
+                            <input type="text" name="clinic_name" required placeholder="Clinic name">
+                        </label>
+                        <label>Specialty *
+                            <input type="text" name="specialty" required placeholder="e.g. Cardiology">
+                        </label>
+                        <label>Minutes / patient
+                            <input type="number" name="minutes_per_patient" value="15" min="5" max="120">
+                        </label>
+                        <label>Address
+                            <input type="text" name="address" placeholder="Cairo, Egypt">
+                        </label>
+                        <label>Latitude
+                            <input type="text" name="latitude" placeholder="30.0444">
+                        </label>
+                        <label>Longitude
+                            <input type="text" name="longitude" placeholder="31.2357">
+                        </label>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">Create doctor & clinic</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="card">
+                <h2>⏳ Pending approvals</h2>
+                {% for doctor in pending_list %}
+                <div class="doctor-row">
+                    <div class="doctor-info">
+                        <h3>{{ doctor[1] }}</h3>
+                        <p>{{ doctor[7] }} · {{ doctor[2] }} · {{ doctor[6] }}</p>
+                        {% if doctor[9] %}<p class="clinic-tag">🏥 {{ doctor[9] }}</p>{% endif %}
+                    </div>
+                    <span class="badge badge-pending">Pending</span>
+                    <div class="action-btns">
+                        <form class="inline-form" method="post" action="{{ url_for('approve_doctor', doctor_id=doctor[0]) }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                            <input type="hidden" name="return_q" value="{{ filter_q }}">
+                            <input type="hidden" name="return_status" value="{{ filter_status }}">
+                            <button type="submit" class="btn-approve">Approve</button>
+                        </form>
+                        <form class="inline-form" method="post" action="{{ url_for('reject_doctor', doctor_id=doctor[0]) }}" onsubmit="return confirm('Reject and delete this registration and clinic?');">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                            <input type="hidden" name="return_q" value="{{ filter_q }}">
+                            <input type="hidden" name="return_status" value="{{ filter_status }}">
+                            <button type="submit" class="btn-reject">Reject</button>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+                {% if pending_doctors == 0 %}
+                    <div class="no-data">No pending doctor registrations.</div>
+                {% endif %}
+            </div>
+
+            <div class="card">
+                <h2>📋 All doctors</h2>
+                {% if doctors|length == 0 %}
+                    <div class="no-data">No doctors match the current filters.</div>
+                {% else %}
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Clinic</th>
+                                    <th>Email</th>
+                                    <th>Specialty</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for doctor in doctors %}
+                                <tr>
+                                    <td><strong>{{ doctor[1] }}</strong><br><span class="mono">{{ doctor[6] }}</span></td>
+                                    <td>{{ doctor[9] or '—' }}</td>
+                                    <td>{{ doctor[2] }}</td>
+                                    <td>{{ doctor[7] }}</td>
+                                    <td>
+                                        {% if doctor[8] == 'pending' %}
+                                            <span class="badge badge-pending">Pending</span>
+                                        {% else %}
+                                            <span class="badge badge-approved">Approved</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="action-btns">
+                                            {% if doctor[8] == 'pending' %}
+                                            <form class="inline-form" method="post" action="{{ url_for('approve_doctor', doctor_id=doctor[0]) }}">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                                                <input type="hidden" name="return_q" value="{{ filter_q }}">
+                                                <input type="hidden" name="return_status" value="{{ filter_status }}">
+                                                <button type="submit" class="btn-approve">Approve</button>
+                                            </form>
+                                            <form class="inline-form" method="post" action="{{ url_for('reject_doctor', doctor_id=doctor[0]) }}" onsubmit="return confirm('Reject and delete this registration?');">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                                                <input type="hidden" name="return_q" value="{{ filter_q }}">
+                                                <input type="hidden" name="return_status" value="{{ filter_status }}">
+                                                <button type="submit" class="btn-reject">Reject</button>
+                                            </form>
+                                            {% endif %}
+                                            <form class="inline-form" method="post" action="{{ url_for('admin_delete_doctor', doctor_id=doctor[0]) }}" onsubmit="return confirm('Delete this doctor and clinic? Bookings and reviews for this clinic will be removed.');">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                                                <input type="hidden" name="return_q" value="{{ filter_q }}">
+                                                <input type="hidden" name="return_status" value="{{ filter_status }}">
+                                                <button type="submit" class="btn-delete">Delete</button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="card">
+                <h2>📜 Admin audit log</h2>
+                <p class="card-sub">Last 30 actions (approve, reject, add, delete). Table is created automatically the first time you use the dashboard.</p>
+                {% if audit_log|length == 0 %}
+                    <div class="no-data">No audit entries yet — perform an admin action to populate this log.</div>
+                {% else %}
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Time</th>
+                                    <th>Action</th>
+                                    <th>Detail</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for row in audit_log %}
+                                <tr>
+                                    <td class="mono">{{ row[3] }}</td>
+                                    <td><span class="badge badge-wait">{{ row[1] }}</span></td>
+                                    <td class="mono" style="word-break:break-all;">{{ row[2] or '—' }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
     </div>
-
-    <div class="container">
-
-        <!-- Stats -->
-        <div class="stats">
-            <div class="stat-card">
-                <div class="stat-number">{{ total_doctors }}</div>
-                <div class="stat-label">Total Doctors</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number">{{ pending_doctors }}</div>
-                <div class="stat-label">Pending Approval</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number">{{ total_patients }}</div>
-                <div class="stat-label">Total Patients</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number">{{ total_clinics }}</div>
-                <div class="stat-label">Total Clinics</div>
-            </div>
-        </div>
-
-        <!-- Pending Doctors -->
-        <div class="card">
-            <h2>⏳ Pending Doctor Approvals</h2>
-            {% for doctor in doctors %}
-            {% if doctor[8] == 'pending' %}
-            <div class="doctor-row">
-                <div class="doctor-info">
-                    <h3>{{ doctor[1] }}</h3>
-                    <p>{{ doctor[7] }} • {{ doctor[2] }} • {{ doctor[6] }}</p>
-                </div>
-                <span class="badge badge-pending">⏳ Pending</span>
-                <div class="action-btns">
-                    <a href="/admin/approve/{{ doctor[0] }}" class="btn-approve">✅ Approve</a>
-                    <a href="/admin/reject/{{ doctor[0] }}" class="btn-reject">❌ Reject</a>
-                </div>
-            </div>
-            {% endif %}
-            {% endfor %}
-            {% if pending_doctors == 0 %}
-            <div class="no-data">✅ No pending approvals!</div>
-            {% endif %}
-        </div>
-
-        <!-- All Doctors --
+</body>
+</html>

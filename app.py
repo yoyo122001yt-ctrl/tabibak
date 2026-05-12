@@ -1,11 +1,60 @@
-from flask import Flask, render_template, request, redirect, session, jsonify
+from flask import Flask, render_template, request, redirect, session, jsonify, flash, url_for
 import sqlite3
 import os
 import math
+import secrets
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 app.secret_key = "tabibak_secret_123"
+
+
+def delete_doctor_and_clinic(cursor, doctor_id):
+    """Remove doctor row and their clinic; clears bookings and reviews for that clinic."""
+    cursor.execute("SELECT clinic_id FROM doctors WHERE id = ?", (doctor_id,))
+    row = cursor.fetchone()
+    if not row or row[0] is None:
+        cursor.execute("DELETE FROM doctors WHERE id = ?", (doctor_id,))
+        return True
+    clinic_id = row[0]
+    cursor.execute("DELETE FROM bookings WHERE clinic_id = ?", (clinic_id,))
+    cursor.execute("DELETE FROM reviews WHERE clinic_id = ?", (clinic_id,))
+    cursor.execute("DELETE FROM doctors WHERE id = ?", (doctor_id,))
+    cursor.execute("DELETE FROM clinics WHERE id = ?", (clinic_id,))
+    return True
+
+
+def ensure_admin_schema(cursor):
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS admin_audit_log (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            action TEXT NOT NULL,
+            detail TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
+
+def log_admin_action(cursor, action, detail=""):
+    ensure_admin_schema(cursor)
+    d = (detail or "")[:2000]
+    cursor.execute("INSERT INTO admin_audit_log (action, detail) VALUES (?, ?)", (action, d))
+
+
+def admin_csrf_valid():
+    return request.form.get("csrf_token") == session.get("admin_csrf")
+
+
+def admin_redirect_after_mutation():
+    q = request.form.get("return_q", "").strip()
+    st = request.form.get("return_status", "").strip()
+    params = {}
+    if q:
+        params["q"] = q
+    if st and st != "all":
+        params["status"] = st
+    return redirect(url_for("admin", **params))
+
 
 UPLOAD_FOLDER = "static/uploads"
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "pdf"}
@@ -394,6 +443,7 @@ def admin_login():
     if request.method == "POST":
         if request.form["password"] == "tabibak_admin_2026":
             session["admin"] = True
+            session["admin_csrf"] = secrets.token_urlsafe(32)
             return redirect("/admin")
         return render_template("admin_login.html", error="Wrong password!")
     return render_template("admin_login.html", error=None)
@@ -402,50 +452,253 @@ def admin_login():
 def admin():
     if session.get("admin") != True:
         return redirect("/admin/login")
+    if not session.get("admin_csrf"):
+        session["admin_csrf"] = secrets.token_urlsafe(32)
+
+    q = request.args.get("q", "").strip()
+    status_filter = request.args.get("status", "all").strip().lower()
+    if status_filter not in ("all", "pending", "approved"):
+        status_filter = "all"
+
     conn = sqlite3.connect("tabibak.db")
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM doctors")
+    ensure_admin_schema(cursor)
+
+    cursor.execute("""
+        SELECT doctors.id, doctors.name, doctors.email, doctors.password, doctors.clinic_id,
+               doctors.is_arrived, doctors.phone, doctors.specialty, doctors.status,
+               clinics.name AS clinic_name
+        FROM doctors
+        LEFT JOIN clinics ON doctors.clinic_id = clinics.id
+        WHERE 1=1
+    """ + (
+        " AND (doctors.name LIKE ? OR doctors.email LIKE ? OR IFNULL(clinics.name,'') LIKE ?)"
+        if q else ""
+    ) + (
+        " AND doctors.status = 'pending'" if status_filter == "pending" else
+        " AND doctors.status = 'approved'" if status_filter == "approved" else ""
+    ) + " ORDER BY doctors.id",
+        (f"%{q}%", f"%{q}%", f"%{q}%") if q else (),
+    )
     doctors = cursor.fetchall()
+
+    cursor.execute("""
+        SELECT doctors.id, doctors.name, doctors.email, doctors.password, doctors.clinic_id,
+               doctors.is_arrived, doctors.phone, doctors.specialty, doctors.status,
+               clinics.name AS clinic_name
+        FROM doctors
+        LEFT JOIN clinics ON doctors.clinic_id = clinics.id
+        WHERE doctors.status = 'pending'
+        ORDER BY doctors.id
+    """)
+    pending_list = cursor.fetchall()
+
     cursor.execute("SELECT COUNT(*) FROM doctors WHERE status = 'pending'")
     pending_doctors = cursor.fetchone()[0]
+    cursor.execute("SELECT COUNT(*) FROM doctors")
+    total_doctors = cursor.fetchone()[0]
     cursor.execute("SELECT COUNT(*) FROM patients")
     total_patients = cursor.fetchone()[0]
     cursor.execute("SELECT COUNT(*) FROM clinics")
     total_clinics = cursor.fetchone()[0]
+    cursor.execute("SELECT COUNT(*) FROM bookings WHERE status = 'waiting'")
+    bookings_waiting = cursor.fetchone()[0]
+
+    cursor.execute("""
+        SELECT bookings.id, bookings.booked_at, bookings.status, bookings.arrived,
+               patients.name AS patient_name, patients.email AS patient_email,
+               clinics.id AS clinic_id, clinics.name AS clinic_name
+        FROM bookings
+        JOIN patients ON bookings.patient_id = patients.id
+        JOIN clinics ON bookings.clinic_id = clinics.id
+        ORDER BY bookings.booked_at DESC
+        LIMIT 40
+    """)
+    recent_bookings = cursor.fetchall()
+
+    cursor.execute("""
+        SELECT id, name, doctor, patients_waiting, minutes_per_patient,
+               (patients_waiting * minutes_per_patient) AS est_wait
+        FROM clinics
+        WHERE is_open = 1
+          AND (patients_waiting >= 10 OR (patients_waiting * minutes_per_patient) >= 120)
+        ORDER BY est_wait DESC
+        LIMIT 10
+    """)
+    queue_hot = cursor.fetchall()
+
+    cursor.execute("""
+        SELECT id, name, doctor, patients_waiting, minutes_per_patient
+        FROM clinics
+        WHERE is_open = 0 AND patients_waiting > 0
+        ORDER BY patients_waiting DESC
+        LIMIT 8
+    """)
+    queue_closed_busy = cursor.fetchall()
+
+    cursor.execute(
+        "SELECT id, action, detail, created_at FROM admin_audit_log ORDER BY id DESC LIMIT 30"
+    )
+    audit_log = cursor.fetchall()
+
     conn.close()
-    return render_template("admin.html",
+
+    csrf_token = session["admin_csrf"]
+    return render_template(
+        "admin.html",
         doctors=doctors,
-        total_doctors=len(doctors),
+        pending_list=pending_list,
+        total_doctors=total_doctors,
         pending_doctors=pending_doctors,
         total_patients=total_patients,
-        total_clinics=total_clinics)
+        total_clinics=total_clinics,
+        bookings_waiting=bookings_waiting,
+        recent_bookings=recent_bookings,
+        queue_hot=queue_hot,
+        queue_closed_busy=queue_closed_busy,
+        audit_log=audit_log,
+        filter_q=q,
+        filter_status=status_filter,
+        csrf_token=csrf_token,
+    )
 
-@app.route("/admin/approve/<int:doctor_id>")
+@app.route("/admin/approve/<int:doctor_id>", methods=["POST"])
 def approve_doctor(doctor_id):
     if session.get("admin") != True:
         return redirect("/admin/login")
+    if not admin_csrf_valid():
+        flash("Security check failed. Please refresh the admin page and try again.", "error")
+        return admin_redirect_after_mutation()
     conn = sqlite3.connect("tabibak.db")
     cursor = conn.cursor()
+    ensure_admin_schema(cursor)
+    cursor.execute("SELECT name, email FROM doctors WHERE id = ?", (doctor_id,))
+    row = cursor.fetchone()
     cursor.execute("UPDATE doctors SET status = 'approved' WHERE id = ?", (doctor_id,))
-    cursor.execute("UPDATE clinics SET is_open = 1 WHERE id = (SELECT clinic_id FROM doctors WHERE id = ?)", (doctor_id,))
+    cursor.execute(
+        "UPDATE clinics SET is_open = 1 WHERE id = (SELECT clinic_id FROM doctors WHERE id = ?)",
+        (doctor_id,),
+    )
+    if row:
+        log_admin_action(cursor, "approve_doctor", f"id={doctor_id} name={row[0]} email={row[1]}")
     conn.commit()
     conn.close()
-    return redirect("/admin")
+    flash("Doctor approved and clinic opened.", "success")
+    return admin_redirect_after_mutation()
 
-@app.route("/admin/reject/<int:doctor_id>")
+@app.route("/admin/reject/<int:doctor_id>", methods=["POST"])
 def reject_doctor(doctor_id):
     if session.get("admin") != True:
         return redirect("/admin/login")
+    if not admin_csrf_valid():
+        flash("Security check failed. Please refresh the admin page and try again.", "error")
+        return admin_redirect_after_mutation()
     conn = sqlite3.connect("tabibak.db")
     cursor = conn.cursor()
-    cursor.execute("SELECT clinic_id FROM doctors WHERE id = ?", (doctor_id,))
-    result = cursor.fetchone()
-    if result:
-        cursor.execute("DELETE FROM clinics WHERE id = ?", (result[0],))
-    cursor.execute("DELETE FROM doctors WHERE id = ?", (doctor_id,))
+    ensure_admin_schema(cursor)
+    cursor.execute("SELECT name, email FROM doctors WHERE id = ?", (doctor_id,))
+    row = cursor.fetchone()
+    delete_doctor_and_clinic(cursor, doctor_id)
+    if row:
+        log_admin_action(cursor, "reject_doctor", f"id={doctor_id} name={row[0]} email={row[1]}")
     conn.commit()
     conn.close()
-    return redirect("/admin")
+    flash("Registration rejected and removed.", "success")
+    return admin_redirect_after_mutation()
+
+@app.route("/admin/doctor/add", methods=["POST"])
+def admin_add_doctor():
+    if session.get("admin") != True:
+        return redirect("/admin/login")
+    if not admin_csrf_valid():
+        flash("Security check failed. Please refresh the admin page and try again.", "error")
+        return admin_redirect_after_mutation()
+    name = request.form.get("name", "").strip()
+    email = request.form.get("email", "").strip().lower()
+    password = request.form.get("password", "")
+    phone = request.form.get("phone", "").strip()
+    clinic_name = request.form.get("clinic_name", "").strip()
+    specialty = request.form.get("specialty", "").strip()
+    minutes_raw = request.form.get("minutes_per_patient", "15").strip()
+    address = request.form.get("address", "").strip() or "Cairo, Egypt"
+    lat_raw = request.form.get("latitude", "").strip()
+    lng_raw = request.form.get("longitude", "").strip()
+
+    if not all([name, email, password, phone, clinic_name, specialty]):
+        flash("Please fill in all required fields.", "error")
+        return admin_redirect_after_mutation()
+    try:
+        minutes_per_patient = max(5, min(120, int(minutes_raw)))
+    except ValueError:
+        flash("Minutes per patient must be a number (5–120).", "error")
+        return admin_redirect_after_mutation()
+    try:
+        latitude = float(lat_raw) if lat_raw else 30.0444
+        longitude = float(lng_raw) if lng_raw else 31.2357
+    except ValueError:
+        flash("Latitude and longitude must be valid numbers.", "error")
+        return admin_redirect_after_mutation()
+
+    conn = sqlite3.connect("tabibak.db")
+    cursor = conn.cursor()
+    ensure_admin_schema(cursor)
+    cursor.execute("SELECT id FROM doctors WHERE email = ?", (email,))
+    if cursor.fetchone():
+        conn.close()
+        flash("That email is already registered.", "error")
+        return admin_redirect_after_mutation()
+    cursor.execute(
+        """INSERT INTO clinics (name, doctor, specialty, patients_waiting, minutes_per_patient, is_open,
+           latitude, longitude, address) VALUES (?, ?, ?, 0, ?, 1, ?, ?, ?)""",
+        (clinic_name, name, specialty, minutes_per_patient, latitude, longitude, address),
+    )
+    clinic_id = cursor.lastrowid
+    cursor.execute(
+        """INSERT INTO doctors (name, email, password, clinic_id, is_arrived, phone, specialty, status)
+           VALUES (?, ?, ?, ?, 0, ?, ?, 'approved')""",
+        (name, email, password, clinic_id, phone, specialty),
+    )
+    new_id = cursor.lastrowid
+    log_admin_action(
+        cursor,
+        "add_doctor",
+        f"id={new_id} name={name} email={email} clinic={clinic_name} clinic_id={clinic_id}",
+    )
+    conn.commit()
+    conn.close()
+    flash(f"Doctor {name} added and approved.", "success")
+    return admin_redirect_after_mutation()
+
+@app.route("/admin/doctor/delete/<int:doctor_id>", methods=["POST"])
+def admin_delete_doctor(doctor_id):
+    if session.get("admin") != True:
+        return redirect("/admin/login")
+    if not admin_csrf_valid():
+        flash("Security check failed. Please refresh the admin page and try again.", "error")
+        return admin_redirect_after_mutation()
+    conn = sqlite3.connect("tabibak.db")
+    cursor = conn.cursor()
+    ensure_admin_schema(cursor)
+    cursor.execute("SELECT name FROM doctors WHERE id = ?", (doctor_id,))
+    row = cursor.fetchone()
+    if not row:
+        conn.close()
+        flash("Doctor not found.", "error")
+        return admin_redirect_after_mutation()
+    doc_name = row[0]
+    delete_doctor_and_clinic(cursor, doctor_id)
+    log_admin_action(cursor, "delete_doctor", f"id={doctor_id} name={doc_name}")
+    conn.commit()
+    conn.close()
+    flash(f"Removed doctor: {doc_name}.", "success")
+    return admin_redirect_after_mutation()
+
+@app.route("/admin/logout")
+def admin_logout():
+    session.pop("admin", None)
+    session.pop("admin_csrf", None)
+    flash("You are logged out of the admin panel.", "success")
+    return redirect("/admin/login")
 
 # ─── REVIEW ROUTES ────────────────────────────────────────
 @app.route("/review/<int:booking_id>")

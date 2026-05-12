@@ -52,6 +52,14 @@
             margin-bottom: 15px;
             font-size: 14px;
         }
+        .success-flash {
+            background: #dcfce7;
+            color: #166534;
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
         .back { margin-top: 20px; }
         .back a { color: #0ea5e9; text-decoration: none; font-size: 14px; }
     </style>
@@ -63,6 +71,15 @@
         {% if error %}
         <div class="error">❌ {{ error }}</div>
         {% endif %}
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    {% if category == 'success' %}
+                        <div class="success-flash">{{ message }}</div>
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
         <form method="POST" action="/admin/login">
             <input type="password" name="password" placeholder="Admin password" required>
             <button type="submit">Login →</button>
