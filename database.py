@@ -1,7 +1,10 @@
 import sqlite3
 import os
 
-conn = sqlite3.connect("tabibak.db")
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+DB_PATH = os.path.join(BASE_DIR, "tabibak.db")
+
+conn = sqlite3.connect(DB_PATH)
 cursor = conn.cursor()
 
 # Clinics table with GPS
@@ -132,7 +135,8 @@ else:
 conn.commit()
 print("✅ Database updated!")
 
-os.makedirs("static/uploads", exist_ok=True)
+UPLOAD_FOLDER = os.path.join(BASE_DIR, "static", "uploads")
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 print("✅ Uploads folder ready!")
 
 conn.close()
