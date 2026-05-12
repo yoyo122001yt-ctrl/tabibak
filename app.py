@@ -149,13 +149,16 @@ def my_bookings():
     conn = sqlite3.connect("tabibak.db")
     cursor = conn.cursor()
     cursor.execute("""
-        SELECT bookings.*, clinics.name, clinics.doctor, clinics.patients_waiting,
-               clinics.minutes_per_patient, clinics.latitude, clinics.longitude
-        FROM bookings
-        JOIN clinics ON bookings.clinic_id = clinics.id
-        WHERE bookings.patient_id = ? AND bookings.status = 'waiting'
-        ORDER BY bookings.booked_at DESC
-    """, (session["patient_id"],))
+    SELECT bookings.id, bookings.patient_id, bookings.clinic_id,
+           bookings.booked_at, bookings.status, bookings.arrived,
+           clinics.name, clinics.doctor, clinics.patients_waiting,
+           clinics.minutes_per_patient, clinics.latitude, clinics.longitude,
+           bookings.reviewed
+    FROM bookings
+    JOIN clinics ON bookings.clinic_id = clinics.id
+    WHERE bookings.patient_id = ? AND bookings.status = 'waiting'
+    ORDER BY bookings.booked_at DESC
+""", (session["patient_id"],))
     bookings = cursor.fetchall()
     cursor.execute("SELECT * FROM patients WHERE id = ?", (session["patient_id"],))
     patient = cursor.fetchone()

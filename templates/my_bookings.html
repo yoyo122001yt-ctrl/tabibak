@@ -7,6 +7,7 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', sans-serif; background: #f0f9ff; color: #333; }
+
         nav {
             background: white;
             padding: 15px 40px;
@@ -14,8 +15,23 @@
             justify-content: space-between;
             align-items: center;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            flex-wrap: wrap;
+            gap: 10px;
         }
         .logo { font-size: 24px; font-weight: bold; color: #0ea5e9; }
+        .nav-links { display: flex; gap: 10px; flex-wrap: wrap; }
+        .nav-link {
+            padding: 8px 18px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            transition: transform 0.2s;
+        }
+        .nav-link:hover { transform: scale(1.05); }
+        .nav-link-blue { background: #f0f9ff; color: #0ea5e9; border: 1px solid #bae6fd; }
+        .nav-link-outline { border: 2px solid #0ea5e9; color: #0ea5e9; }
+
         .hero {
             background: linear-gradient(135deg, #0ea5e9, #0284c7);
             color: white;
@@ -24,7 +40,9 @@
         }
         .hero h1 { font-size: 30px; margin-bottom: 10px; }
         .hero p { opacity: 0.9; }
+
         .container { max-width: 800px; margin: 30px auto; padding: 0 20px; }
+
         .card {
             background: white;
             border-radius: 16px;
@@ -89,9 +107,9 @@
         .booking-card.arrived { border-left-color: #16a34a; background: #f0fdf4; }
         .booking-info h3 { font-size: 18px; color: #0284c7; margin-bottom: 5px; }
         .booking-info p { font-size: 14px; color: #666; margin-bottom: 3px; }
-        .booking-status {
-            text-align: center;
-        }
+
+        .booking-status { text-align: center; min-width: 140px; }
+
         .status-waiting {
             background: #fefce8;
             color: #854d0e;
@@ -112,24 +130,54 @@
             display: inline-block;
             margin-bottom: 8px;
         }
-        .wait-mins { font-size: 24px; font-weight: bold; color: #0ea5e9; }
-        .wait-label { font-size: 12px; color: #999; }
-        .map-link {
+        .wait-mins { font-size: 26px; font-weight: bold; color: #0ea5e9; }
+        .wait-label { font-size: 12px; color: #999; margin-bottom: 8px; }
+
+        .review-btn {
             display: inline-block;
             margin-top: 8px;
-            padding: 6px 15px;
-            background: #f0f9ff;
-            color: #0ea5e9;
+            padding: 8px 18px;
+            background: #fbbf24;
+            color: #333;
             border-radius: 50px;
             text-decoration: none;
+            font-weight: bold;
             font-size: 13px;
-            border: 1px solid #bae6fd;
+            transition: transform 0.2s;
         }
+        .review-btn:hover { transform: scale(1.05); }
+
+        .reviewed-badge {
+            display: inline-block;
+            margin-top: 8px;
+            color: #16a34a;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
         .no-bookings {
             text-align: center;
             padding: 40px;
             color: #999;
             font-size: 16px;
+        }
+        .no-bookings a { color: #0ea5e9; text-decoration: none; font-weight: 600; }
+
+        /* Success toast */
+        .success-toast {
+            display: none;
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #16a34a;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: bold;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            z-index: 1000;
         }
 
         /* Arrived notification */
@@ -159,7 +207,11 @@
 
     <nav>
         <div class="logo">Tabibak طبيبك</div>
-        <a href="/patient/profile" style="color:#0ea5e9; text-decoration:none; font-weight:600;">← My Profile</a>
+        <div class="nav-links">
+            <a href="/clinics" class="nav-link nav-link-blue">🏥 Find Doctor</a>
+            <a href="/patient/profile" class="nav-link nav-link-blue">👤 My Profile</a>
+            <a href="/patient/logout" class="nav-link nav-link-outline">Logout →</a>
+        </div>
     </nav>
 
     <div class="hero">
@@ -185,10 +237,7 @@
             {% if bookings %}
                 {% for booking in bookings %}
                 <div class="booking-card {% if booking[5] == 1 %}arrived{% endif %}"
-                     id="booking-{{ booking[2] }}"
-                     data-clinic-id="{{ booking[2] }}"
-                     data-lat="{{ booking[10] if booking|length > 10 else 0 }}"
-                     data-lng="{{ booking[11] if booking|length > 11 else 0 }}">
+                     id="booking-{{ booking[2] }}">
                     <div class="booking-info">
                         <h3>{{ booking[6] }}</h3>
                         <p>👨‍⚕️ {{ booking[7] }}</p>
@@ -203,25 +252,40 @@
                         {% endif %}
                         <div class="wait-mins">{{ booking[8] * booking[9] }}</div>
                         <div class="wait-label">min estimated wait</div>
+                        {% if booking[5] == 1 and booking[12] == 0 %}
+                            <a href="/review/{{ booking[0] }}" class="review-btn">⭐ Leave Review</a>
+                        {% elif booking[12] == 1 %}
+                            <div class="reviewed-badge">✅ Reviewed!</div>
+                        {% endif %}
                     </div>
                 </div>
                 {% endfor %}
             {% else %}
                 <div class="no-bookings">
-                    📭 No active bookings.<br>
-                    <a href="/clinics" style="color:#0ea5e9;">Find a doctor →</a>
+                    📭 No active bookings.<br><br>
+                    <a href="/clinics">Find a doctor and book now →</a>
                 </div>
             {% endif %}
         </div>
 
     </div>
 
-    <!-- Arrived Toast -->
+    <!-- Toasts -->
     <div class="arrived-toast" id="arrivedToast"></div>
+    <div class="success-toast" id="successToast"></div>
 
     <script>
         let trackingInterval = null;
         let isTracking = false;
+
+        // Show review success message
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('reviewed') === 'true') {
+            const toast = document.getElementById('successToast');
+            toast.textContent = '⭐ Review submitted successfully!';
+            toast.style.display = 'block';
+            setTimeout(() => { toast.style.display = 'none'; }, 4000);
+        }
 
         function startTracking() {
             if (isTracking) {
@@ -245,9 +309,7 @@
                     btn.textContent = '⏹️ Stop Tracking';
                     btn.style.background = '#fee2e2';
                     btn.style.color = '#dc2626';
-                    status.innerHTML = '<span class="tracking-active">🟢 Tracking Active</span>';
-
-                    // Check every 30 seconds
+                    status.innerHTML = '<span class="tracking-active">🟢 Tracking Active — checking every 30 seconds</span>';
                     checkArrival(position);
                     trackingInterval = setInterval(function() {
                         navigator.geolocation.getCurrentPosition(checkArrival);
