@@ -214,4 +214,4 @@ const translations = {
         login: "登录",
         footer: "让所有人都能获得医疗保健。"
     }
-};
+}; 

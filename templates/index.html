@@ -4,227 +4,808 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tabibak - طبيبك</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
     <script src="/static/translations.js"></script>
     <style>
+        :root {
+            --primary: #0ea5e9;
+            --primary-dark: #0284c7;
+            --primary-light: #bae6fd;
+            --accent: #06d6a0;
+            --accent2: #f72585;
+            --dark: #0f172a;
+            --dark2: #1e293b;
+            --dark3: #334155;
+            --light: #f8fafc;
+            --text: #1e293b;
+            --text-muted: #64748b;
+            --white: #ffffff;
+            --glass: rgba(255,255,255,0.08);
+            --glass-border: rgba(255,255,255,0.15);
+            --shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+            --shadow-sm: 0 4px 20px rgba(0,0,0,0.08);
+            --radius: 20px;
+            --radius-sm: 12px;
+            --transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', sans-serif; color: #333; }
 
-        /* NAVBAR */
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            color: var(--text);
+            background: var(--light);
+            overflow-x: hidden;
+        }
+
+        body.rtl { direction: rtl; }
+
+        /* ── CURSOR ── */
+        .cursor {
+            width: 12px; height: 12px;
+            background: var(--primary);
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            transition: transform 0.15s ease;
+            mix-blend-mode: multiply;
+        }
+        .cursor-follower {
+            width: 40px; height: 40px;
+            border: 2px solid var(--primary);
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 9998;
+            transition: transform 0.4s ease, opacity 0.3s;
+            opacity: 0.5;
+        }
+
+        /* ── NAVBAR ── */
         nav {
-            background: #fff;
-            padding: 15px 40px;
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 1000;
+            padding: 0 40px;
+            height: 70px;
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            flex-wrap: wrap;
-            gap: 10px;
+            justify-content: space-between;
+            transition: var(--transition);
         }
-        .logo { font-size: 24px; font-weight: bold; color: #0ea5e9; }
-        .logo span { color: #333; }
-        nav ul { list-style: none; display: flex; gap: 20px; flex-wrap: wrap; }
-        nav ul a { text-decoration: none; color: #333; font-weight: 500; font-size: 14px; }
-        nav ul a:hover { color: #0ea5e9; }
-        .nav-btns { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-        .nav-btn {
-            padding: 8px 15px;
-            border-radius: 50px;
-            font-size: 13px;
-            font-weight: bold;
+        nav.scrolled {
+            background: rgba(255,255,255,0.9);
+            backdrop-filter: blur(20px);
+            box-shadow: 0 1px 0 rgba(0,0,0,0.08);
+        }
+        .logo {
+            font-family: 'Syne', sans-serif;
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--white);
+            letter-spacing: -0.5px;
+            transition: var(--transition);
             text-decoration: none;
-            transition: transform 0.2s;
         }
-        .nav-btn:hover { transform: scale(1.05); }
-        .nav-btn-outline { border: 2px solid #0ea5e9; color: #0ea5e9; }
-        .nav-btn-filled { background: #0ea5e9; color: white; }
-        .nav-btn-green { background: #16a34a; color: white; }
-        .nav-btn-light { background: #f0f9ff; color: #0ea5e9; border: 1px solid #bae6fd; }
+        nav.scrolled .logo { color: var(--primary); }
+        .logo em { color: var(--accent); font-style: normal; }
 
-        /* LANGUAGE SWITCHER */
+        nav ul {
+            list-style: none;
+            display: flex;
+            gap: 8px;
+        }
+        nav ul a {
+            text-decoration: none;
+            color: rgba(255,255,255,0.8);
+            font-size: 14px;
+            font-weight: 500;
+            padding: 6px 14px;
+            border-radius: 50px;
+            transition: var(--transition);
+        }
+        nav.scrolled ul a { color: var(--text-muted); }
+        nav ul a:hover {
+            background: rgba(255,255,255,0.15);
+            color: white;
+        }
+        nav.scrolled ul a:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .nav-actions { display: flex; gap: 8px; align-items: center; }
+
         .lang-switcher {
             display: flex;
-            gap: 3px;
-            align-items: center;
-            background: #f8fafc;
-            padding: 4px 8px;
+            gap: 2px;
+            background: rgba(255,255,255,0.1);
+            padding: 4px;
             border-radius: 50px;
-            border: 1px solid #e2e8f0;
+            backdrop-filter: blur(10px);
         }
+        nav.scrolled .lang-switcher { background: var(--light); }
         .lang-btn {
-            font-size: 18px;
+            font-size: 16px;
             cursor: pointer;
-            padding: 2px 4px;
-            border-radius: 6px;
-            transition: transform 0.2s, background 0.2s;
+            padding: 4px 6px;
+            border-radius: 50px;
             border: none;
             background: transparent;
+            transition: var(--transition);
+            line-height: 1;
         }
-        .lang-btn:hover { transform: scale(1.2); background: #e2e8f0; }
-        .lang-btn.active { background: #0ea5e9; border-radius: 6px; }
+        .lang-btn:hover { transform: scale(1.2); }
+        .lang-btn.active { background: var(--primary); }
 
-        /* RTL support for Arabic */
-        body.rtl { direction: rtl; text-align: right; }
-        body.rtl nav { flex-direction: row-reverse; }
-        body.rtl nav ul { flex-direction: row-reverse; }
+        .nav-btn {
+            padding: 8px 18px;
+            border-radius: 50px;
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: var(--transition);
+            white-space: nowrap;
+        }
+        .nav-btn-ghost {
+            color: rgba(255,255,255,0.9);
+            border: 1.5px solid rgba(255,255,255,0.3);
+        }
+        nav.scrolled .nav-btn-ghost { color: var(--text); border-color: #e2e8f0; }
+        .nav-btn-ghost:hover { background: rgba(255,255,255,0.15); }
+        nav.scrolled .nav-btn-ghost:hover { background: var(--light); }
+        .nav-btn-solid { background: white; color: var(--primary); }
+        nav.scrolled .nav-btn-solid { background: var(--primary); color: white; }
+        .nav-btn-solid:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(14,165,233,0.4); }
+        .nav-btn-green { background: var(--accent); color: var(--dark); }
+        .nav-btn-green:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(6,214,160,0.4); }
 
-        /* HERO */
+        /* ── HERO ── */
         .hero {
-            background: linear-gradient(135deg, #0ea5e9, #0284c7);
+            min-height: 100vh;
+            background: var(--dark);
+            position: relative;
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .hero-bg {
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 80% 80% at 20% 50%, rgba(14,165,233,0.3) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 60% at 80% 20%, rgba(6,214,160,0.2) 0%, transparent 60%),
+                radial-gradient(ellipse 50% 50% at 70% 80%, rgba(247,37,133,0.15) 0%, transparent 60%);
+        }
+
+        .hero-grid {
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
+        }
+
+        /* Floating orbs */
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(60px);
+            animation: float 8s ease-in-out infinite;
+        }
+        .orb-1 { width: 400px; height: 400px; background: rgba(14,165,233,0.15); top: -100px; right: 10%; animation-delay: 0s; }
+        .orb-2 { width: 300px; height: 300px; background: rgba(6,214,160,0.1); bottom: 10%; left: 5%; animation-delay: -3s; }
+        .orb-3 { width: 200px; height: 200px; background: rgba(247,37,133,0.1); top: 40%; right: 30%; animation-delay: -6s; }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) scale(1); }
+            50% { transform: translateY(-30px) scale(1.05); }
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 120px 40px 80px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(6,214,160,0.15);
+            border: 1px solid rgba(6,214,160,0.3);
+            color: var(--accent);
+            padding: 6px 16px;
+            border-radius: 50px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 24px;
+            animation: fadeInUp 0.8s ease both;
+        }
+        .hero-badge .dot {
+            width: 6px; height: 6px;
+            background: var(--accent);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.5); }
+        }
+
+        .hero-title {
+            font-family: 'Syne', sans-serif;
+            font-size: clamp(42px, 5vw, 68px);
+            font-weight: 800;
             color: white;
+            line-height: 1.05;
+            letter-spacing: -2px;
+            margin-bottom: 20px;
+            animation: fadeInUp 0.8s ease 0.1s both;
+        }
+        .hero-title .highlight {
+            background: linear-gradient(135deg, var(--primary-light), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .hero-title .arabic {
+            display: block;
+            font-size: 0.6em;
+            color: rgba(255,255,255,0.4);
+            letter-spacing: 2px;
+            font-weight: 600;
+        }
+
+        .hero-sub {
+            font-size: 18px;
+            color: rgba(255,255,255,0.6);
+            line-height: 1.7;
+            margin-bottom: 40px;
+            max-width: 480px;
+            animation: fadeInUp 0.8s ease 0.2s both;
+        }
+
+        .hero-btns {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            animation: fadeInUp 0.8s ease 0.3s both;
+        }
+
+        .btn-hero-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 32px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: var(--transition);
+            box-shadow: 0 8px 30px rgba(14,165,233,0.4);
+        }
+        .btn-hero-primary:hover { transform: translateY(-3px); box-shadow: 0 15px 40px rgba(14,165,233,0.5); }
+
+        .btn-hero-secondary {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 32px;
+            background: rgba(255,255,255,0.08);
+            border: 1.5px solid rgba(255,255,255,0.2);
+            color: white;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: var(--transition);
+            backdrop-filter: blur(10px);
+        }
+        .btn-hero-secondary:hover { background: rgba(255,255,255,0.15); transform: translateY(-3px); }
+
+        /* Hero stats */
+        .hero-stats {
+            display: flex;
+            gap: 30px;
+            margin-top: 50px;
+            animation: fadeInUp 0.8s ease 0.4s both;
+        }
+        .stat {
+            text-align: left;
+        }
+        .stat-num {
+            font-family: 'Syne', sans-serif;
+            font-size: 32px;
+            font-weight: 800;
+            color: white;
+        }
+        .stat-label { font-size: 13px; color: rgba(255,255,255,0.5); }
+
+        /* Hero visual */
+        .hero-visual {
+            position: relative;
+            animation: fadeInRight 1s ease 0.3s both;
+        }
+
+        .hero-card {
+            background: rgba(255,255,255,0.06);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 24px;
+            padding: 24px;
+            margin-bottom: 16px;
+            transition: var(--transition);
+        }
+        .hero-card:hover { transform: translateX(-8px); background: rgba(255,255,255,0.1); }
+
+        .clinic-card-mini {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .clinic-icon {
+            width: 50px; height: 50px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+        .clinic-icon.blue { background: rgba(14,165,233,0.2); }
+        .clinic-icon.green { background: rgba(6,214,160,0.2); }
+        .clinic-icon.pink { background: rgba(247,37,133,0.2); }
+
+        .clinic-details { flex: 1; }
+        .clinic-name-mini { font-weight: 700; color: white; font-size: 15px; margin-bottom: 3px; }
+        .clinic-meta { font-size: 12px; color: rgba(255,255,255,0.5); }
+
+        .clinic-right { text-align: right; }
+        .wait-pill {
+            background: rgba(6,214,160,0.2);
+            color: var(--accent);
+            padding: 4px 12px;
+            border-radius: 50px;
+            font-size: 12px;
+            font-weight: 700;
+            display: inline-block;
+            margin-bottom: 4px;
+        }
+        .wait-pill.orange { background: rgba(251,191,36,0.2); color: #fbbf24; }
+        .open-badge { font-size: 11px; color: var(--accent); font-weight: 600; }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeInRight {
+            from { opacity: 0; transform: translateX(30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* ── PORTAL SECTION ── */
+        .portal {
             padding: 100px 40px;
-            text-align: center;
-        }
-        .hero h1 { font-size: 52px; margin-bottom: 20px; }
-        .hero h1 span { color: #bae6fd; }
-        .hero p { font-size: 20px; margin-bottom: 40px; opacity: 0.9; max-width: 600px; margin-left: auto; margin-right: auto; }
-        .hero-btns { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; }
-        .btn {
             background: white;
-            color: #0ea5e9;
-            padding: 15px 40px;
-            border-radius: 50px;
-            font-size: 18px;
-            font-weight: bold;
-            text-decoration: none;
+            position: relative;
+        }
+        .portal::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--primary), transparent);
+        }
+
+        .section-label {
             display: inline-block;
-            transition: transform 0.2s;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--primary);
+            margin-bottom: 16px;
         }
-        .btn:hover { transform: scale(1.05); }
-        .btn-outline {
-            background: transparent;
-            color: white;
-            border: 2px solid white;
-            padding: 15px 40px;
-            border-radius: 50px;
+        .section-title {
+            font-family: 'Syne', sans-serif;
+            font-size: clamp(32px, 4vw, 48px);
+            font-weight: 800;
+            color: var(--dark);
+            letter-spacing: -1.5px;
+            line-height: 1.1;
+            margin-bottom: 12px;
+        }
+        .section-sub {
             font-size: 18px;
-            font-weight: bold;
-            text-decoration: none;
-            display: inline-block;
-            transition: transform 0.2s;
+            color: var(--text-muted);
+            max-width: 500px;
         }
-        .btn-outline:hover { transform: scale(1.05); background: rgba(255,255,255,0.1); }
 
-        /* PORTAL SECTION */
-        .portal { padding: 80px 40px; text-align: center; background: white; }
-        .portal h2 { font-size: 36px; margin-bottom: 10px; }
-        .portal .subtitle { color: #777; margin-bottom: 50px; font-size: 18px; }
-        .portal-cards { display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; }
-        .portal-card { border-radius: 20px; padding: 40px; width: 280px; transition: transform 0.2s; }
-        .portal-card:hover { transform: translateY(-5px); }
-        .portal-card .icon { font-size: 50px; margin-bottom: 15px; }
-        .portal-card h3 { font-size: 22px; margin-bottom: 10px; }
-        .portal-card p { color: #666; margin-bottom: 25px; font-size: 15px; line-height: 1.6; }
-        .card-btn { display: block; padding: 12px; border-radius: 50px; text-decoration: none; font-weight: bold; margin-bottom: 10px; transition: transform 0.2s; }
-        .card-btn:hover { transform: scale(1.03); }
-        .card-btn-secondary { display: block; padding: 12px; border-radius: 50px; text-decoration: none; font-weight: bold; border: 2px solid; margin-top: 10px; }
+        .section-header { margin-bottom: 60px; text-align: center; }
+        .section-header .section-sub { margin: 0 auto; }
 
-        .patient-card { background: #f0f9ff; border-top: 4px solid #0ea5e9; }
-        .patient-card h3 { color: #0284c7; }
-        .patient-card .card-btn { background: #0ea5e9; color: white; }
-        .patient-card .card-btn-secondary { border-color: #0ea5e9; color: #0ea5e9; }
+        .portal-grid {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
 
-        .doctor-card { background: #f0fdf4; border-top: 4px solid #16a34a; }
-        .doctor-card h3 { color: #16a34a; }
-        .doctor-card .card-btn { background: #16a34a; color: white; }
-        .doctor-card .card-btn-secondary { border-color: #16a34a; color: #16a34a; }
+        .portal-card {
+            border-radius: 24px;
+            padding: 40px 32px;
+            position: relative;
+            overflow: hidden;
+            transition: var(--transition);
+            cursor: pointer;
+        }
+        .portal-card::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, transparent 60%, rgba(255,255,255,0.1));
+            pointer-events: none;
+        }
+        .portal-card:hover { transform: translateY(-8px); box-shadow: var(--shadow); }
 
-        .find-card { background: #fff7ed; border-top: 4px solid #f97316; }
-        .find-card h3 { color: #f97316; }
-        .find-card .card-btn { background: #f97316; color: white; }
+        .portal-card.patient { background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); }
+        .portal-card.doctor { background: linear-gradient(135deg, #06d6a0 0%, #059669 100%); }
+        .portal-card.finder { background: linear-gradient(135deg, #f72585 0%, #b5179e 100%); }
 
-        /* TRACKING FEATURE SECTION */
-        .tracking-section {
-            background: linear-gradient(135deg, #1e293b, #334155);
+        .portal-card-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+            display: block;
+        }
+        .portal-card h3 {
+            font-family: 'Syne', sans-serif;
+            font-size: 24px;
+            font-weight: 800;
             color: white;
-            padding: 80px 40px;
-            text-align: center;
+            margin-bottom: 10px;
         }
-        .tracking-section h2 { font-size: 36px; margin-bottom: 15px; }
-        .tracking-section p { font-size: 18px; opacity: 0.8; margin-bottom: 40px; max-width: 600px; margin-left: auto; margin-right: auto; }
+        .portal-card p { color: rgba(255,255,255,0.8); font-size: 15px; line-height: 1.6; margin-bottom: 28px; }
+
+        .portal-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 22px;
+            background: rgba(255,255,255,0.2);
+            border: 1.5px solid rgba(255,255,255,0.4);
+            color: white;
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: var(--transition);
+            margin-right: 8px;
+            margin-bottom: 8px;
+        }
+        .portal-btn:hover { background: rgba(255,255,255,0.35); transform: translateX(4px); }
+        .portal-btn.solid { background: white; color: var(--dark); }
+        .portal-btn.solid:hover { background: rgba(255,255,255,0.9); }
+
+        /* ── TRACKING SECTION ── */
+        .tracking {
+            padding: 100px 40px;
+            background: var(--dark);
+            position: relative;
+            overflow: hidden;
+        }
+        .tracking::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse 70% 70% at 80% 50%, rgba(14,165,233,0.2) 0%, transparent 70%);
+        }
+        .tracking-inner {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 80px;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
         .tracking-steps {
             display: flex;
-            justify-content: center;
-            gap: 30px;
-            flex-wrap: wrap;
-            margin-bottom: 40px;
+            flex-direction: column;
+            gap: 24px;
         }
         .tracking-step {
-            width: 200px;
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+            padding: 24px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 20px;
+            transition: var(--transition);
+        }
+        .tracking-step:hover { background: rgba(255,255,255,0.08); border-color: rgba(14,165,233,0.3); }
+        .step-num {
+            width: 40px; height: 40px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            color: white;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+        .step-content h4 { color: white; font-weight: 700; margin-bottom: 6px; font-size: 16px; }
+        .step-content p { color: rgba(255,255,255,0.5); font-size: 14px; line-height: 1.6; }
+
+        .tracking-cta {
             text-align: center;
         }
-        .tracking-step .step-icon { font-size: 40px; margin-bottom: 10px; }
-        .tracking-step h3 { font-size: 16px; margin-bottom: 8px; }
-        .tracking-step p { font-size: 14px; opacity: 0.7; }
-        .tracking-btn {
-            display: inline-block;
-            background: #0ea5e9;
+        .tracking-cta .section-title { color: white; }
+        .tracking-cta .section-sub { color: rgba(255,255,255,0.5); margin: 0 auto 40px; }
+        .btn-tracking {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 16px 40px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
             color: white;
-            padding: 15px 40px;
             border-radius: 50px;
-            font-size: 18px;
-            font-weight: bold;
+            font-size: 16px;
+            font-weight: 700;
             text-decoration: none;
-            transition: transform 0.2s;
+            transition: var(--transition);
+            box-shadow: 0 8px 30px rgba(14,165,233,0.4);
         }
-        .tracking-btn:hover { transform: scale(1.05); background: #0284c7; }
+        .btn-tracking:hover { transform: translateY(-3px); box-shadow: 0 15px 40px rgba(14,165,233,0.5); }
 
-        /* PROBLEM */
-        .problem { background: #f8fafc; padding: 80px 40px; text-align: center; }
-        .problem h2 { font-size: 36px; margin-bottom: 20px; color: #0ea5e9; }
-        .problem p { font-size: 18px; color: #555; margin-bottom: 40px; }
-        .problem-cards { display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; }
-        .problem-card { background: white; border-radius: 16px; padding: 30px; width: 280px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
-        .problem-card .icon { font-size: 40px; margin-bottom: 15px; }
-        .problem-card h3 { font-size: 18px; margin-bottom: 10px; }
-        .problem-card p { font-size: 15px; color: #777; }
+        /* ── PROBLEM SECTION ── */
+        .problem {
+            padding: 100px 40px;
+            background: var(--light);
+        }
+        .problem-grid {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+        .problem-card {
+            background: white;
+            border-radius: 24px;
+            padding: 36px 28px;
+            border: 1px solid #f1f5f9;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+        .problem-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            transform: scaleX(0);
+            transition: var(--transition);
+            transform-origin: left;
+        }
+        .problem-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-sm); }
+        .problem-card:hover::before { transform: scaleX(1); }
+        .problem-icon { font-size: 36px; margin-bottom: 20px; display: block; }
+        .problem-card h3 { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 700; color: var(--dark); margin-bottom: 12px; }
+        .problem-card p { font-size: 15px; color: var(--text-muted); line-height: 1.7; }
 
-        /* FEATURES */
-        .features { padding: 80px 40px; text-align: center; }
-        .features h2 { font-size: 36px; margin-bottom: 10px; }
-        .features .subtitle { color: #777; margin-bottom: 50px; font-size: 18px; }
-        .features-grid { display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; }
-        .feature-card { background: #f0f9ff; border-radius: 16px; padding: 30px; width: 250px; border-top: 4px solid #0ea5e9; }
-        .feature-card .icon { font-size: 36px; margin-bottom: 15px; }
-        .feature-card h3 { font-size: 18px; margin-bottom: 10px; color: #0284c7; }
-        .feature-card p { font-size: 15px; color: #555; }
+        /* ── FEATURES ── */
+        .features {
+            padding: 100px 40px;
+            background: white;
+        }
+        .features-grid {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+        .feature-card {
+            padding: 32px 28px;
+            border-radius: 24px;
+            background: var(--light);
+            border: 1px solid transparent;
+            transition: var(--transition);
+        }
+        .feature-card:hover {
+            background: white;
+            border-color: var(--primary-light);
+            box-shadow: var(--shadow-sm);
+            transform: translateY(-4px);
+        }
+        .feature-icon {
+            width: 52px; height: 52px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        .feature-card h3 { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; color: var(--dark); margin-bottom: 10px; }
+        .feature-card p { font-size: 14px; color: var(--text-muted); line-height: 1.7; }
 
-        /* HOW IT WORKS */
-        .how { background: #f8fafc; padding: 80px 40px; text-align: center; }
-        .how h2 { font-size: 36px; margin-bottom: 50px; }
-        .steps { display: flex; justify-content: center; gap: 40px; flex-wrap: wrap; }
-        .step { width: 220px; }
-        .step-number { background: #0ea5e9; color: white; width: 50px; height: 50px; border-radius: 50%; font-size: 22px; font-weight: bold; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; }
-        .step h3 { font-size: 18px; margin-bottom: 10px; }
-        .step p { font-size: 15px; color: #777; }
+        /* ── HOW IT WORKS ── */
+        .how {
+            padding: 100px 40px;
+            background: var(--light);
+        }
+        .how-steps {
+            max-width: 900px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            position: relative;
+        }
+        .how-steps::before {
+            content: '';
+            position: absolute;
+            top: 40px; left: 60px; right: 60px;
+            height: 2px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            z-index: 0;
+        }
+        .how-step {
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+        .how-num {
+            width: 80px; height: 80px;
+            border-radius: 50%;
+            background: white;
+            border: 3px solid var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Syne', sans-serif;
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--primary);
+            margin: 0 auto 20px;
+            transition: var(--transition);
+            box-shadow: 0 0 0 8px var(--light);
+        }
+        .how-step:hover .how-num {
+            background: var(--primary);
+            color: white;
+            transform: scale(1.1);
+        }
+        .how-step h3 { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; color: var(--dark); margin-bottom: 8px; }
+        .how-step p { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
 
-        /* CONTACT */
-        .contact { padding: 80px 40px; text-align: center; background: #0ea5e9; color: white; }
-        .contact h2 { font-size: 36px; margin-bottom: 15px; }
-        .contact p { font-size: 18px; margin-bottom: 30px; opacity: 0.9; }
-        .contact a { background: white; color: #0ea5e9; padding: 15px 40px; border-radius: 50px; font-size: 18px; font-weight: bold; text-decoration: none; }
+        /* ── CONTACT ── */
+        .contact {
+            padding: 100px 40px;
+            background: var(--dark);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .contact::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse 60% 60% at 50% 50%, rgba(14,165,233,0.2) 0%, transparent 70%);
+        }
+        .contact-inner { position: relative; z-index: 1; max-width: 600px; margin: 0 auto; }
+        .contact .section-title { color: white; }
+        .contact .section-sub { color: rgba(255,255,255,0.5); margin: 0 auto 40px; }
+        .btn-contact {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 16px 40px;
+            background: white;
+            color: var(--dark);
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 700;
+            text-decoration: none;
+            transition: var(--transition);
+        }
+        .btn-contact:hover { transform: translateY(-3px); box-shadow: 0 15px 40px rgba(255,255,255,0.2); }
 
-        /* FOOTER */
-        footer { background: #1e293b; color: #94a3b8; text-align: center; padding: 30px; font-size: 14px; }
-        footer span { color: #0ea5e9; }
-        footer a { color: #94a3b8; text-decoration: none; margin: 0 10px; }
-        footer a:hover { color: #0ea5e9; }
+        /* ── FOOTER ── */
+        footer {
+            background: #080f1a;
+            padding: 40px;
+            text-align: center;
+        }
+        .footer-logo {
+            font-family: 'Syne', sans-serif;
+            font-size: 20px;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 20px;
+        }
+        .footer-logo em { color: var(--accent); font-style: normal; }
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        .footer-links a {
+            color: rgba(255,255,255,0.4);
+            text-decoration: none;
+            font-size: 13px;
+            transition: var(--transition);
+        }
+        .footer-links a:hover { color: var(--primary); }
+        .footer-copy { color: rgba(255,255,255,0.2); font-size: 13px; }
+        .footer-copy span { color: var(--accent); }
+
+        /* ── SCROLL ANIMATIONS ── */
+        .reveal {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .reveal.visible { opacity: 1; transform: translateY(0); }
+        .reveal-delay-1 { transition-delay: 0.1s; }
+        .reveal-delay-2 { transition-delay: 0.2s; }
+        .reveal-delay-3 { transition-delay: 0.3s; }
+        .reveal-delay-4 { transition-delay: 0.4s; }
+
+        /* ── MOBILE ── */
+        @media (max-width: 768px) {
+            nav { padding: 0 20px; }
+            nav ul { display: none; }
+            .hero-content { grid-template-columns: 1fr; padding: 100px 20px 60px; gap: 40px; }
+            .hero-visual { display: none; }
+            .portal-grid, .problem-grid, .features-grid { grid-template-columns: 1fr; }
+            .how-steps { grid-template-columns: repeat(2, 1fr); }
+            .how-steps::before { display: none; }
+            .tracking-inner { grid-template-columns: 1fr; gap: 40px; }
+            .portal, .problem, .features, .how, .tracking, .contact { padding: 60px 20px; }
+        }
     </style>
 </head>
 <body>
 
+    <div class="cursor" id="cursor"></div>
+    <div class="cursor-follower" id="cursorFollower"></div>
+
     <!-- NAVBAR -->
-    <nav>
-        <div class="logo">Tabibak <span>طبيبك</span></div>
+    <nav id="navbar">
+        <a href="/" class="logo">Tabibak <em>طبيبك</em></a>
         <ul>
             <li><a href="#problem">Problem</a></li>
             <li><a href="#features">Features</a></li>
             <li><a href="#how">How it works</a></li>
-            <li><a href="/clinics">Find a Doctor</a></li>
+            <li><a href="/clinics">Find Doctor</a></li>
         </ul>
-        <div class="nav-btns">
+        <div class="nav-actions">
             <div class="lang-switcher">
                 <button class="lang-btn active" onclick="setLang('en')" title="English">🇬🇧</button>
                 <button class="lang-btn" onclick="setLang('ar')" title="العربية">🇸🇦</button>
@@ -232,97 +813,196 @@
                 <button class="lang-btn" onclick="setLang('de')" title="Deutsch">🇩🇪</button>
                 <button class="lang-btn" onclick="setLang('zh')" title="中文">🇨🇳</button>
             </div>
-            <a href="/my_bookings" class="nav-btn nav-btn-light">📋 My Bookings</a>
-            <a href="/patient/login" class="nav-btn nav-btn-outline" data-t="my_profile">My Profile</a>
-            <a href="/doctor/login" class="nav-btn nav-btn-filled" data-t="doctor_login">Doctor Login</a>
+            <a href="/my_bookings" class="nav-btn nav-btn-ghost">📋 Bookings</a>
+            <a href="/patient/login" class="nav-btn nav-btn-ghost" data-t="my_profile">My Profile</a>
+            <a href="/doctor/login" class="nav-btn nav-btn-solid" data-t="doctor_login">Doctor Login</a>
             <a href="/doctor/register" class="nav-btn nav-btn-green" data-t="join_doctor">Join as Doctor</a>
         </div>
     </nav>
 
     <!-- HERO -->
     <section class="hero">
-        <h1 data-t="find_doctor">Find a Doctor <span>Right Now</span></h1>
-        <p data-t="hero_sub">No more wasting hours in waiting rooms. See available doctors near you, check waiting times, and book instantly.</p>
-        <div class="hero-btns">
-            <a href="/clinics" class="btn" data-t="find_btn">Find a Doctor Now →</a>
-            <a href="/patient/register" class="btn-outline" data-t="create_acc">Create Account</a>
+        <div class="hero-bg"></div>
+        <div class="hero-grid"></div>
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+
+        <div class="hero-content">
+            <div class="hero-text">
+                <div class="hero-badge">
+                    <span class="dot"></span>
+                    Now live in Egypt 🇪🇬
+                </div>
+                <h1 class="hero-title" data-t="find_doctor">
+                    Find a Doctor
+                    <span class="highlight">Right Now</span>
+                    <span class="arabic">طبيبك في متناول يدك</span>
+                </h1>
+                <p class="hero-sub" data-t="hero_sub">
+                    No more wasting hours in waiting rooms. See available doctors near you, check waiting times, and book instantly.
+                </p>
+                <div class="hero-btns">
+                    <a href="/clinics" class="btn-hero-primary" data-t="find_btn">
+                        🏥 Find a Doctor Now
+                    </a>
+                    <a href="/patient/register" class="btn-hero-secondary" data-t="create_acc">
+                        ✨ Create Account
+                    </a>
+                </div>
+                <div class="hero-stats">
+                    <div class="stat">
+                        <div class="stat-num">500+</div>
+                        <div class="stat-label">Doctors</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-num">50K+</div>
+                        <div class="stat-label">Patients</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-num">4.9★</div>
+                        <div class="stat-label">Rating</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="hero-visual">
+                <div class="hero-card">
+                    <div class="clinic-card-mini">
+                        <div class="clinic-icon blue">🏥</div>
+                        <div class="clinic-details">
+                            <div class="clinic-name-mini">Clinic Youssef</div>
+                            <div class="clinic-meta">Dr. Ahmed · General Practice</div>
+                        </div>
+                        <div class="clinic-right">
+                            <div class="wait-pill">45 min</div>
+                            <div class="open-badge">🟢 Open</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="hero-card">
+                    <div class="clinic-card-mini">
+                        <div class="clinic-icon green">💚</div>
+                        <div class="clinic-details">
+                            <div class="clinic-name-mini">Nile Medical</div>
+                            <div class="clinic-meta">Dr. Sara · Cardiology</div>
+                        </div>
+                        <div class="clinic-right">
+                            <div class="wait-pill orange">20 min</div>
+                            <div class="open-badge">🟢 Open</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="hero-card">
+                    <div class="clinic-card-mini">
+                        <div class="clinic-icon pink">👶</div>
+                        <div class="clinic-details">
+                            <div class="clinic-name-mini">October Clinic</div>
+                            <div class="clinic-meta">Dr. Mona · Pediatrics</div>
+                        </div>
+                        <div class="clinic-right">
+                            <div class="wait-pill">60 min</div>
+                            <div class="open-badge">🟢 Open</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </section>
 
-    <!-- PORTAL SECTION -->
+    <!-- PORTAL -->
     <section class="portal" id="portal">
-        <h2 data-t="get_started">Get Started Today</h2>
-        <p class="subtitle" data-t="get_started_sub">Choose how you want to use Tabibak</p>
-        <div class="portal-cards">
-            <div class="portal-card patient-card">
-                <div class="icon">🧑‍💻</div>
+        <div class="section-header reveal">
+            <div class="section-label">Get Started</div>
+            <h2 class="section-title" data-t="get_started">Choose Your Role</h2>
+            <p class="section-sub" data-t="get_started_sub">Everything you need in one place</p>
+        </div>
+        <div class="portal-grid">
+            <div class="portal-card patient reveal reveal-delay-1">
+                <span class="portal-card-icon">🧑‍💻</span>
                 <h3 data-t="im_patient">I'm a Patient</h3>
-                <p data-t="patient_desc">Find doctors, check wait times and manage your medical profile easily</p>
-                <a href="/patient/register" class="card-btn" data-t="create_account">Create Account →</a>
-                <a href="/patient/login" class="card-btn-secondary" data-t="login">Login</a>
+                <p data-t="patient_desc">Find doctors near you, check live wait times and manage your complete medical profile.</p>
+                <a href="/patient/register" class="portal-btn solid" data-t="create_account">Create Account →</a>
+                <a href="/patient/login" class="portal-btn" data-t="login">Login</a>
             </div>
-            <div class="portal-card doctor-card">
-                <div class="icon">👨‍⚕️</div>
+            <div class="portal-card doctor reveal reveal-delay-2">
+                <span class="portal-card-icon">👨‍⚕️</span>
                 <h3 data-t="im_doctor">I'm a Doctor</h3>
-                <p data-t="doctor_desc">Manage your clinic, queue and view patient medical profiles instantly</p>
-                <a href="/doctor/login" class="card-btn" data-t="doctor_login">Doctor Login →</a>
-                <a href="/doctor/register" class="card-btn-secondary" data-t="join_doctor">Join as Doctor</a>
+                <p data-t="doctor_desc">Manage your clinic queue, view patient records and grow your practice with Tabibak.</p>
+                <a href="/doctor/login" class="portal-btn solid" data-t="doctor_login">Doctor Login →</a>
+                <a href="/doctor/register" class="portal-btn" data-t="join_doctor">Join Now</a>
             </div>
-            <div class="portal-card find-card">
-                <div class="icon">🏥</div>
+            <div class="portal-card finder reveal reveal-delay-3">
+                <span class="portal-card-icon">🏥</span>
                 <h3 data-t="find_card">Find a Doctor</h3>
-                <p data-t="find_desc">Browse available doctors near you and check live wait times right now</p>
-                <a href="/clinics" class="card-btn" data-t="find_now">Find Now →</a>
+                <p data-t="find_desc">Browse available doctors near you with GPS, live wait times and verified reviews.</p>
+                <a href="/clinics" class="portal-btn solid" data-t="find_now">Find Now →</a>
             </div>
         </div>
     </section>
 
-    <!-- AUTO-ARRIVE TRACKING SECTION -->
-    <section class="tracking-section">
-        <h2>🚶 Auto-Arrive Tracking</h2>
-        <p>Book your appointment and we'll automatically detect when you arrive at the clinic using GPS!</p>
-        <div class="tracking-steps">
-            <div class="tracking-step">
-                <div class="step-icon">📅</div>
-                <h3>Book Appointment</h3>
-                <p>Find a doctor and book your spot in the queue</p>
+    <!-- TRACKING -->
+    <section class="tracking">
+        <div class="tracking-inner">
+            <div class="tracking-steps">
+                <div class="tracking-step reveal reveal-delay-1">
+                    <div class="step-num">1</div>
+                    <div class="step-content">
+                        <h4>Book Appointment</h4>
+                        <p>Find a doctor and secure your spot in the queue from anywhere.</p>
+                    </div>
+                </div>
+                <div class="tracking-step reveal reveal-delay-2">
+                    <div class="step-num">2</div>
+                    <div class="step-content">
+                        <h4>Enable GPS Tracking</h4>
+                        <p>Turn on auto-arrive tracking in your bookings page with one tap.</p>
+                    </div>
+                </div>
+                <div class="tracking-step reveal reveal-delay-3">
+                    <div class="step-num">3</div>
+                    <div class="step-content">
+                        <h4>Travel to Clinic</h4>
+                        <p>Head to the clinic at the right time — no more wasted trips.</p>
+                    </div>
+                </div>
+                <div class="tracking-step reveal reveal-delay-4">
+                    <div class="step-num">4</div>
+                    <div class="step-content">
+                        <h4>Auto-Marked Arrived!</h4>
+                        <p>GPS detects you're within 200m and marks you arrived automatically.</p>
+                    </div>
+                </div>
             </div>
-            <div class="tracking-step">
-                <div class="step-icon">📍</div>
-                <h3>Enable Tracking</h3>
-                <p>Turn on GPS tracking in your bookings page</p>
-            </div>
-            <div class="tracking-step">
-                <div class="step-icon">🚶</div>
-                <h3>Travel to Clinic</h3>
-                <p>Head to the clinic at the right time</p>
-            </div>
-            <div class="tracking-step">
-                <div class="step-icon">✅</div>
-                <h3>Auto-Marked Arrived!</h3>
-                <p>System detects you're at the clinic and marks you arrived automatically</p>
+            <div class="tracking-cta reveal">
+                <div class="section-label" style="color:var(--accent);">Auto-Arrive Technology</div>
+                <h2 class="section-title">🚶 We Know<br>When You Arrive</h2>
+                <p class="section-sub">Our GPS technology automatically marks you as arrived the moment you reach the clinic — no check-in needed.</p>
+                <a href="/my_bookings" class="btn-tracking">📋 Track My Bookings →</a>
             </div>
         </div>
-        <a href="/my_bookings" class="tracking-btn">📋 Track My Bookings →</a>
     </section>
 
     <!-- PROBLEM -->
     <section class="problem" id="problem">
-        <h2 data-t="problem_title">Sound Familiar? 😣</h2>
-        <p data-t="problem_sub">Every day, millions of people face these frustrating problems</p>
-        <div class="problem-cards">
-            <div class="problem-card">
-                <div class="icon">⏰</div>
+        <div class="section-header reveal">
+            <div class="section-label">The Problem</div>
+            <h2 class="section-title" data-t="problem_title">Sound Familiar? 😣</h2>
+            <p class="section-sub" data-t="problem_sub">Every day, millions of people face these frustrating problems</p>
+        </div>
+        <div class="problem-grid">
+            <div class="problem-card reveal reveal-delay-1">
+                <span class="problem-icon">⏰</span>
                 <h3 data-t="problem1_title">Hours of Waiting</h3>
                 <p data-t="problem1_desc">You arrive at a clinic and wait 3 hours without knowing how many people are ahead of you.</p>
             </div>
-            <div class="problem-card">
-                <div class="icon">🤷</div>
+            <div class="problem-card reveal reveal-delay-2">
+                <span class="problem-icon">🤷</span>
                 <h3 data-t="problem2_title">Is the Doctor Even There?</h3>
                 <p data-t="problem2_desc">You travel to a clinic only to find out the doctor is not available today.</p>
             </div>
-            <div class="problem-card">
-                <div class="icon">🔍</div>
+            <div class="problem-card reveal reveal-delay-3">
+                <span class="problem-icon">🔍</span>
                 <h3 data-t="problem3_title">Hard to Find Specialists</h3>
                 <p data-t="problem3_desc">You need a specific doctor but have no idea who is nearby or if they are any good.</p>
             </div>
@@ -331,90 +1011,142 @@
 
     <!-- FEATURES -->
     <section class="features" id="features">
-        <h2 data-t="features_title">How Tabibak Helps You</h2>
-        <p class="subtitle" data-t="features_sub">Everything you need to find the right doctor, fast</p>
+        <div class="section-header reveal">
+            <div class="section-label">Features</div>
+            <h2 class="section-title" data-t="features_title">How Tabibak Helps</h2>
+            <p class="section-sub" data-t="features_sub">Everything you need to find the right doctor, fast</p>
+        </div>
         <div class="features-grid">
-            <div class="feature-card">
-                <div class="icon">📍</div>
+            <div class="feature-card reveal reveal-delay-1">
+                <div class="feature-icon">📍</div>
                 <h3>Nearby Doctors</h3>
-                <p>Find doctors and clinics near your location instantly.</p>
+                <p>GPS-powered search finds doctors and clinics closest to your exact location.</p>
             </div>
-            <div class="feature-card">
-                <div class="icon">🟢</div>
+            <div class="feature-card reveal reveal-delay-2">
+                <div class="feature-icon">🟢</div>
                 <h3>Live Availability</h3>
-                <p>See which doctors are available right now in real time.</p>
+                <p>See which doctors are open and available right now — updated in real time.</p>
             </div>
-            <div class="feature-card">
-                <div class="icon">⏱️</div>
+            <div class="feature-card reveal reveal-delay-3">
+                <div class="feature-icon">⏱️</div>
                 <h3>Wait Time Tracker</h3>
-                <p>Know exactly how many patients are ahead of you before you leave home.</p>
+                <p>Know exactly how long you'll wait before you even leave your home.</p>
             </div>
-            <div class="feature-card">
-                <div class="icon">🚶</div>
+            <div class="feature-card reveal reveal-delay-1">
+                <div class="feature-icon">🚶</div>
                 <h3>Auto-Arrive</h3>
                 <p>GPS detects when you reach the clinic and marks you arrived automatically.</p>
             </div>
-            <div class="feature-card">
-                <div class="icon">📋</div>
+            <div class="feature-card reveal reveal-delay-2">
+                <div class="feature-icon">📋</div>
                 <h3>Medical Profile</h3>
-                <p>Upload your medical documents and share them with your doctor instantly.</p>
+                <p>Upload documents and share your complete medical history with your doctor.</p>
             </div>
-            <div class="feature-card">
-                <div class="icon">⭐</div>
+            <div class="feature-card reveal reveal-delay-3">
+                <div class="feature-icon">⭐</div>
                 <h3>Verified Reviews</h3>
-                <p>Read real reviews from real patients to choose the best doctor.</p>
+                <p>Read real reviews from real patients to choose the best doctor near you.</p>
             </div>
         </div>
     </section>
 
     <!-- HOW IT WORKS -->
     <section class="how" id="how">
-        <h2 data-t="how_title">How It Works 🚀</h2>
-        <div class="steps">
-            <div class="step">
-                <div class="step-number">1</div>
+        <div class="section-header reveal">
+            <div class="section-label">Process</div>
+            <h2 class="section-title" data-t="how_title">How It Works 🚀</h2>
+        </div>
+        <div class="how-steps">
+            <div class="how-step reveal reveal-delay-1">
+                <div class="how-num">1</div>
                 <h3 data-t="step1_title">Create Account</h3>
-                <p data-t="step1_desc">Register as a patient and fill in your medical profile.</p>
+                <p data-t="step1_desc">Register and build your complete medical profile in minutes.</p>
             </div>
-            <div class="step">
-                <div class="step-number">2</div>
+            <div class="how-step reveal reveal-delay-2">
+                <div class="how-num">2</div>
                 <h3 data-t="step2_title">Find a Doctor</h3>
-                <p data-t="step2_desc">Search nearby doctors, see availability and wait times.</p>
+                <p data-t="step2_desc">Browse nearby doctors with live wait times and ratings.</p>
             </div>
-            <div class="step">
-                <div class="step-number">3</div>
+            <div class="how-step reveal reveal-delay-3">
+                <div class="how-num">3</div>
                 <h3 data-t="step3_title">Share Profile</h3>
-                <p data-t="step3_desc">Doctor sees your full medical history before you enter the room.</p>
+                <p data-t="step3_desc">Doctor sees your full medical history before you arrive.</p>
             </div>
-            <div class="step">
-                <div class="step-number">4</div>
+            <div class="how-step reveal reveal-delay-4">
+                <div class="how-num">4</div>
                 <h3 data-t="step4_title">Go!</h3>
-                <p data-t="step4_desc">Head to the clinic knowing exactly what to expect. No surprises.</p>
+                <p data-t="step4_desc">Head to the clinic knowing exactly what to expect.</p>
             </div>
         </div>
     </section>
 
     <!-- CONTACT -->
     <section class="contact" id="contact">
-        <h2 data-t="contact_title">Want Early Access?</h2>
-        <p data-t="contact_sub">Tabibak is growing. Be the first to know about new features!</p>
-        <a href="mailto:hello@tabibak.com" data-t="contact_btn">Get Early Access →</a>
+        <div class="contact-inner reveal">
+            <div class="section-label" style="color:var(--accent);">Early Access</div>
+            <h2 class="section-title" data-t="contact_title">Want Early Access?</h2>
+            <p class="section-sub" data-t="contact_sub">Tabibak is growing fast. Be the first to know about new features!</p>
+            <a href="mailto:hello@tabibak.com" class="btn-contact" data-t="contact_btn">
+                ✉️ Get Early Access →
+            </a>
+        </div>
     </section>
 
     <!-- FOOTER -->
     <footer>
-        <p>© 2026 <span>Tabibak طبيبك</span> — <span data-t="footer">Making healthcare accessible for everyone.</span></p>
-        <p style="margin-top:10px;">
+        <div class="footer-logo">Tabibak <em>طبيبك</em></div>
+        <div class="footer-links">
             <a href="/patient/register">Patient Register</a>
             <a href="/patient/login">Patient Login</a>
             <a href="/my_bookings">My Bookings</a>
             <a href="/doctor/register">Doctor Register</a>
             <a href="/doctor/login">Doctor Login</a>
             <a href="/clinics">Find a Doctor</a>
-        </p>
+        </div>
+        <div class="footer-copy">© 2026 <span>Tabibak طبيبك</span> — Making healthcare accessible for everyone.</div>
     </footer>
 
     <script>
+        // ── CURSOR ──
+        const cursor = document.getElementById('cursor');
+        const follower = document.getElementById('cursorFollower');
+        let mouseX = 0, mouseY = 0, followerX = 0, followerY = 0;
+
+        document.addEventListener('mousemove', e => {
+            mouseX = e.clientX; mouseY = e.clientY;
+            cursor.style.left = mouseX - 6 + 'px';
+            cursor.style.top = mouseY - 6 + 'px';
+        });
+
+        function animateFollower() {
+            followerX += (mouseX - followerX - 20) * 0.1;
+            followerY += (mouseY - followerY - 20) * 0.1;
+            follower.style.left = followerX + 'px';
+            follower.style.top = followerY + 'px';
+            requestAnimationFrame(animateFollower);
+        }
+        animateFollower();
+
+        document.querySelectorAll('a, button').forEach(el => {
+            el.addEventListener('mouseenter', () => cursor.style.transform = 'scale(3)');
+            el.addEventListener('mouseleave', () => cursor.style.transform = 'scale(1)');
+        });
+
+        // ── NAVBAR SCROLL ──
+        window.addEventListener('scroll', () => {
+            document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 50);
+        });
+
+        // ── SCROLL REVEAL ──
+        const observer = new IntersectionObserver(entries => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) entry.target.classList.add('visible');
+            });
+        }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+        document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+        // ── LANGUAGE ──
         let currentLang = localStorage.getItem('tabibak_lang') || 'en';
 
         function setLang(lang) {
