@@ -174,7 +174,33 @@
     <!-- Medical Documents -->
     <div class="card reveal reveal-delay-1">
         <h2>📁 Medical Documents</h2>
+        
+        {% if not access_granted and not pending_request %}
+        <!-- Request Access Button -->
+        <div style="background: #fef3c7; border: 2px solid #fbbf24; border-radius: 16px; padding: 24px; text-align: center; margin-bottom: 20px;">
+            <div style="font-size: 40px; margin-bottom: 12px;">🔒</div>
+            <h3 style="font-family: 'Syne', sans-serif; font-size: 18px; color: #92400e; margin-bottom: 12px;">Medical Documents are Private</h3>
+            <p style="color: #78350f; font-size: 14px; margin-bottom: 20px;">You need patient approval to view their medical documents.</p>
+            <form method="POST" action="/doctor/request_documents/{{ patient[0] }}">
+                <button type="submit" style="background: #f59e0b; color: white; border: none; padding: 12px 30px; border-radius: 50px; font-weight: 700; font-size: 15px; cursor: pointer; transition: all 0.3s ease;">
+                    📨 Request Access to Documents
+                </button>
+            </form>
+        </div>
+        {% elif pending_request %}
+        <!-- Pending Request -->
+        <div style="background: #dbeafe; border: 2px solid #3b82f6; border-radius: 16px; padding: 24px; text-align: center; margin-bottom: 20px;">
+            <div style="font-size: 40px; margin-bottom: 12px;">⏳</div>
+            <h3 style="font-family: 'Syne', sans-serif; font-size: 18px; color: #1e40af; margin-bottom: 8px;">Request Pending</h3>
+            <p style="color: #1e3a8a; font-size: 14px;">Waiting for patient approval to view medical documents.</p>
+        </div>
+        {% elif access_granted %}
+        <!-- Show Documents -->
         {% if documents %}
+        <div style="background: #dcfce7; border: 2px solid #16a34a; border-radius: 12px; padding: 12px 20px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 20px;">✅</span>
+            <span style="color: #15803d; font-weight: 600; font-size: 14px;">Access Granted - You can view this patient's medical documents</span>
+        </div>
         <div class="documents-grid">
             {% for doc in documents %}
             <div class="doc-card">
@@ -187,8 +213,9 @@
         {% else %}
         <div class="no-docs">
             <div style="font-size:40px; margin-bottom:10px;">📂</div>
-            No medical documents uploaded by this patient.
+            No medical documents uploaded by this patient yet.
         </div>
+        {% endif %}
         {% endif %}
     </div>
 

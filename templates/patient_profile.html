@@ -284,6 +284,31 @@
     </div>
     {% endif %}
 
+    <!-- Pending Document Requests -->
+    {% if pending_requests %}
+    <div class="card reveal">
+        <h2>📨 Document Access Requests</h2>
+        <p style="color:var(--text-muted); margin-bottom:20px; font-size:15px;">Review doctors who requested access to your documents and approve or reject each request.</p>
+        {% for req in pending_requests %}
+        <div class="booking-row" style="border-left-color: #3b82f6;">
+            <div>
+                <h3>{{ req['doctor_name'] }}</h3>
+                <p>🏥 {{ req['clinic_name'] }}</p>
+                <p>🕒 Requested at {{ req['requested_at'] }}</p>
+            </div>
+            <div style="display:flex; gap:12px; flex-wrap:wrap;">
+                <form method="POST" action="/patient/approve_request/{{ req['id'] }}" style="margin:0;">
+                    <button type="submit" class="track-link" style="background:#16a34a; color:white;">✅ Approve</button>
+                </form>
+                <form method="POST" action="/patient/reject_request/{{ req['id'] }}" style="margin:0;">
+                    <button type="submit" class="track-link" style="background:#ef4444; color:white;">❌ Reject</button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
     <!-- Upload Document -->
     <div class="card reveal">
         <h2>📤 Upload Medical Document</h2>

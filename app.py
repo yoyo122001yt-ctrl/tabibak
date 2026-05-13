@@ -382,10 +382,35 @@ def doctor_view_patient(patient_id):
     if not patient:
         conn.close()
         return redirect("/doctor/dashboard")
-    cursor.execute("SELECT * FROM medical_documents WHERE patient_id = ?", (patient_id,))
-    documents = cursor.fetchall()
+    
+    # Check if doctor has access to documents
+    cursor.execute("""
+        SELECT * FROM document_access_requests 
+        WHERE doctor_id = ? AND patient_id = ? AND status = 'approved'
+        ORDER BY responded_at DESC LIMIT 1
+    """, (session["doctor_id"], patient_id))
+    access_granted = cursor.fetchone()
+    
+    # Check if there's a pending request
+    cursor.execute("""
+        SELECT * FROM document_access_requests 
+        WHERE doctor_id = ? AND patient_id = ? AND status = 'pending'
+        ORDER BY requested_at DESC LIMIT 1
+    """, (session["doctor_id"], patient_id))
+    pending_request = cursor.fetchone()
+    
+    # Only show documents if access is granted
+    documents = []
+    if access_granted:
+        cursor.execute("SELECT * FROM medical_documents WHERE patient_id = ?", (patient_id,))
+        documents = cursor.fetchall()
+    
     conn.close()
-    return render_template("doctor_view_patient.html", patient=patient, documents=documents)
+    return render_template("doctor_view_patient.html", 
+                         patient=patient, 
+                         documents=documents,
+                         access_granted=access_granted,
+                         pending_request=pending_request)
 
 @app.route("/doctor/arrive")
 @login_required('doctor')
@@ -423,6 +448,41 @@ def next_patient():
     
     conn.close()
     return redirect("/doctor/dashboard")
+
+@app.route("/doctor/request_documents/<int:patient_id>", methods=["POST"])
+@login_required('doctor')
+def request_documents(patient_id):
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    # Verify patient has booked this doctor's clinic
+    cursor.execute("""
+        SELECT * FROM bookings 
+        WHERE patient_id = ? AND clinic_id = ?
+    """, (patient_id, session["clinic_id"]))
+    booking = cursor.fetchone()
+    
+    if not booking:
+        conn.close()
+        return redirect("/doctor/dashboard")
+    
+    # Check if request already exists
+    cursor.execute("""
+        SELECT * FROM document_access_requests 
+        WHERE doctor_id = ? AND patient_id = ? AND status = 'pending'
+    """, (session["doctor_id"], patient_id))
+    existing = cursor.fetchone()
+    
+    if not existing:
+        # Create new request
+        cursor.execute("""
+            INSERT INTO document_access_requests (doctor_id, patient_id, clinic_id, status, requested_at)
+            VALUES (?, ?, ?, 'pending', ?)
+        """, (session["doctor_id"], patient_id, session["clinic_id"], datetime.now()))
+        conn.commit()
+    
+    conn.close()
+    return redirect(f"/doctor/patient/{patient_id}")
 
 @app.route("/doctor/logout")
 def doctor_logout():
@@ -505,8 +565,25 @@ def patient_profile():
         ORDER BY bookings.booked_at DESC
     """, (session["patient_id"],))
     bookings = cursor.fetchall()
+    
+    # Get pending document access requests
+    cursor.execute("""
+        SELECT dar.*, doctors.name as doctor_name, clinics.name as clinic_name
+        FROM document_access_requests dar
+        JOIN doctors ON dar.doctor_id = doctors.id
+        JOIN clinics ON dar.clinic_id = clinics.id
+        WHERE dar.patient_id = ? AND dar.status = 'pending'
+        ORDER BY dar.requested_at DESC
+    """, (session["patient_id"],))
+    pending_requests = cursor.fetchall()
+    
     conn.close()
-    return render_template("patient_profile.html", patient=patient, documents=documents, success=None, bookings=bookings)
+    return render_template("patient_profile.html", 
+                         patient=patient, 
+                         documents=documents, 
+                         success=None, 
+                         bookings=bookings,
+                         pending_requests=pending_requests)
 
 @app.route("/patient/upload", methods=["POST"])
 @login_required('patient')
@@ -529,6 +606,54 @@ def patient_upload():
                       (session["patient_id"], unique_filename, description, datetime.now()))
         conn.commit()
         conn.close()
+    return redirect("/patient/profile")
+
+@app.route("/patient/approve_request/<int:request_id>", methods=["POST"])
+@login_required('patient')
+def approve_document_request(request_id):
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    # Verify this request belongs to the logged-in patient
+    cursor.execute("""
+        SELECT * FROM document_access_requests 
+        WHERE id = ? AND patient_id = ? AND status = 'pending'
+    """, (request_id, session["patient_id"]))
+    request_data = cursor.fetchone()
+    
+    if request_data:
+        cursor.execute("""
+            UPDATE document_access_requests 
+            SET status = 'approved', responded_at = ?
+            WHERE id = ?
+        """, (datetime.now(), request_id))
+        conn.commit()
+    
+    conn.close()
+    return redirect("/patient/profile")
+
+@app.route("/patient/reject_request/<int:request_id>", methods=["POST"])
+@login_required('patient')
+def reject_document_request(request_id):
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    # Verify this request belongs to the logged-in patient
+    cursor.execute("""
+        SELECT * FROM document_access_requests 
+        WHERE id = ? AND patient_id = ? AND status = 'pending'
+    """, (request_id, session["patient_id"]))
+    request_data = cursor.fetchone()
+    
+    if request_data:
+        cursor.execute("""
+            UPDATE document_access_requests 
+            SET status = 'rejected', responded_at = ?
+            WHERE id = ?
+        """, (datetime.now(), request_id))
+        conn.commit()
+    
+    conn.close()
     return redirect("/patient/profile")
 
 @app.route("/patient/logout")
