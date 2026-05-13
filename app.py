@@ -398,6 +398,14 @@ def doctor_view_patient(patient_id):
         ORDER BY requested_at DESC LIMIT 1
     """, (session["doctor_id"], patient_id))
     pending_request = cursor.fetchone()
+
+    # Check if the last request was rejected
+    cursor.execute("""
+        SELECT * FROM document_access_requests 
+        WHERE doctor_id = ? AND patient_id = ? AND status = 'rejected'
+        ORDER BY responded_at DESC, requested_at DESC LIMIT 1
+    """, (session["doctor_id"], patient_id))
+    rejected_request = cursor.fetchone()
     
     # Only show documents if access is granted
     documents = []
@@ -410,7 +418,8 @@ def doctor_view_patient(patient_id):
                          patient=patient, 
                          documents=documents,
                          access_granted=access_granted,
-                         pending_request=pending_request)
+                         pending_request=pending_request,
+                         rejected_request=rejected_request)
 
 @app.route("/doctor/arrive")
 @login_required('doctor')
