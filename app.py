@@ -105,7 +105,9 @@ def home():
 @app.route("/map")
 def map_view():
     data = get_clinics()
-    return render_template("map.html", clinics=data)
+    # Convert SQLite Row objects to plain dicts for JSON serialization in template
+    clinics = [dict(c) for c in data]
+    return render_template("map.html", clinics=clinics)
 
 @app.route("/clinics")
 def clinics():

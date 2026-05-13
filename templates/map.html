@@ -1,487 +1,353 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tabibak - Find Doctors on Map</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', sans-serif; background: #f0f9ff; }
+{% extends 'base.html' %}
+{% block title %}Clinic Map - Tabibak{% endblock %}
+{% block body_class %}page-map{% endblock %}
 
-        nav {
-            background: white;
-            padding: 15px 40px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            position: fixed;
-            top: 0; left: 0; right: 0;
-            z-index: 1000;
-        }
-        .logo { font-size: 22px; font-weight: bold; color: #0ea5e9; }
-        .nav-links { display: flex; gap: 10px; }
-        .nav-link {
-            padding: 8px 18px;
-            border-radius: 50px;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 14px;
-            transition: all 0.2s;
-        }
-        .nav-link-blue { background: #f0f9ff; color: #0ea5e9; border: 1px solid #bae6fd; }
-        .nav-link-blue:hover { background: #0ea5e9; color: white; }
+{% block extra_head %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+    body.page-map .main-content {
+        padding-top: 70px;
+        padding-bottom: 0;
+    }
 
-        /* MAP */
-        #map {
-            position: fixed;
-            top: 70px; left: 0; right: 0; bottom: 0;
-            z-index: 1;
-        }
+    .map-layout {
+        display: grid;
+        grid-template-columns: 340px 1fr;
+        height: calc(100vh - 70px);
+    }
 
-        /* SIDEBAR */
-        .sidebar {
-            position: fixed;
-            top: 70px;
-            right: 0;
-            width: 360px;
-            height: calc(100vh - 70px);
-            background: white;
-            z-index: 500;
-            box-shadow: -5px 0 20px rgba(0,0,0,0.1);
-            display: flex;
-            flex-direction: column;
-            transition: transform 0.3s ease;
-        }
-        .sidebar.hidden { transform: translateX(100%); }
+    /* ── SIDEBAR ── */
+    .map-sidebar {
+        background: white;
+        border-right: 1px solid #e2e8f0;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+    .map-sidebar-header {
+        padding: 20px 24px 16px;
+        border-bottom: 1px solid #e2e8f0;
+        background: linear-gradient(135deg, var(--primary), var(--accent));
+    }
+    .map-sidebar-header h2 {
+        font-family: 'Syne', sans-serif;
+        font-size: 20px;
+        font-weight: 800;
+        color: white;
+        margin-bottom: 4px;
+    }
+    .map-sidebar-header p {
+        color: rgba(255,255,255,0.75);
+        font-size: 13px;
+    }
 
-        .sidebar-header {
-            padding: 20px;
-            border-bottom: 1px solid #f1f5f9;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .sidebar-header h2 { font-size: 18px; color: #0284c7; }
-        .sidebar-toggle {
-            background: #0ea5e9;
-            color: white;
-            border: none;
-            padding: 6px 14px;
-            border-radius: 50px;
-            cursor: pointer;
-            font-size: 13px;
-            font-weight: 600;
-        }
+    .map-search-bar {
+        padding: 14px 16px;
+        border-bottom: 1px solid #f1f5f9;
+        position: relative;
+    }
+    .map-search-bar input {
+        width: 100%;
+        padding: 10px 16px 10px 38px;
+        border: 2px solid #e2e8f0;
+        border-radius: 50px;
+        font-size: 14px;
+        font-family: inherit;
+        outline: none;
+        transition: border-color 0.2s;
+        background: #f8fafc;
+    }
+    .map-search-bar input:focus { border-color: var(--primary); background: white; }
+    .map-search-bar .search-icon {
+        position: absolute;
+        left: 28px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 15px;
+    }
 
-        .clinic-list {
-            flex: 1;
-            overflow-y: auto;
-            padding: 15px;
-        }
+    .clinic-list {
+        flex: 1;
+        overflow-y: auto;
+        padding: 8px 0;
+    }
+    .clinic-list::-webkit-scrollbar { width: 4px; }
+    .clinic-list::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 2px; }
 
-        .clinic-item {
-            background: #f8fafc;
-            border-radius: 14px;
-            padding: 16px;
-            margin-bottom: 12px;
-            cursor: pointer;
-            transition: all 0.2s;
-            border: 2px solid transparent;
-        }
-        .clinic-item:hover { border-color: #0ea5e9; background: #f0f9ff; transform: translateX(-4px); }
-        .clinic-item.active { border-color: #0ea5e9; background: #f0f9ff; }
+    .clinic-item {
+        padding: 14px 20px;
+        cursor: pointer;
+        border-bottom: 1px solid #f8fafc;
+        transition: background 0.15s;
+        display: flex;
+        gap: 14px;
+        align-items: flex-start;
+    }
+    .clinic-item:hover, .clinic-item.active { background: rgba(14,165,233,0.06); }
+    .clinic-item.active { border-left: 3px solid var(--primary); }
 
-        .clinic-item-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
-        .clinic-item-name { font-size: 16px; font-weight: 700; color: #0284c7; }
-        .clinic-item-status {
-            padding: 3px 10px;
-            border-radius: 50px;
-            font-size: 11px;
-            font-weight: 700;
-        }
-        .status-open { background: #dcfce7; color: #16a34a; }
-        .status-closed { background: #fee2e2; color: #dc2626; }
+    .clinic-item-icon {
+        width: 42px; height: 42px;
+        border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 20px;
+        flex-shrink: 0;
+    }
+    .clinic-item-icon.open { background: rgba(6,214,160,0.15); }
+    .clinic-item-icon.closed { background: rgba(239,68,68,0.1); }
 
-        .clinic-item-info { font-size: 13px; color: #64748b; margin-bottom: 4px; }
-        .clinic-item-wait { font-size: 18px; font-weight: 700; color: #0ea5e9; }
-        .clinic-item-distance { font-size: 12px; color: #94a3b8; }
+    .clinic-item-info { flex: 1; min-width: 0; }
+    .clinic-item-name {
+        font-weight: 700;
+        font-size: 15px;
+        color: var(--dark);
+        margin-bottom: 3px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .clinic-item-meta {
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-bottom: 6px;
+    }
+    .clinic-item-badges { display: flex; gap: 6px; flex-wrap: wrap; }
+    .pill {
+        padding: 2px 10px;
+        border-radius: 50px;
+        font-size: 11px;
+        font-weight: 700;
+    }
+    .pill-green { background: rgba(6,214,160,0.15); color: #059669; }
+    .pill-red { background: rgba(239,68,68,0.1); color: #dc2626; }
+    .pill-blue { background: rgba(14,165,233,0.15); color: var(--primary); }
+    .pill-orange { background: rgba(245,158,11,0.15); color: #d97706; }
 
-        .book-btn-small {
-            display: block;
-            width: 100%;
-            padding: 8px;
-            background: #0ea5e9;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 13px;
-            font-weight: 700;
-            cursor: pointer;
-            margin-top: 10px;
-            text-align: center;
-            text-decoration: none;
-            transition: all 0.2s;
-        }
-        .book-btn-small:hover { background: #0284c7; }
+    /* ── MAP ── */
+    #map {
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+    }
 
-        /* MAP CONTROLS */
-        .map-controls {
-            position: fixed;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 600;
-            display: flex;
-            gap: 10px;
-        }
-        .map-control-btn {
-            padding: 12px 24px;
-            border-radius: 50px;
-            border: none;
-            font-size: 15px;
-            font-weight: 700;
-            cursor: pointer;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-            transition: all 0.2s;
-        }
-        .map-control-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.2); }
-        .btn-locate { background: white; color: #0ea5e9; }
-        .btn-toggle { background: #0ea5e9; color: white; }
+    /* ── POPUP ── */
+    .map-popup {
+        font-family: 'DM Sans', sans-serif;
+        min-width: 220px;
+    }
+    .map-popup h3 {
+        font-family: 'Syne', sans-serif;
+        font-size: 16px;
+        font-weight: 800;
+        margin-bottom: 4px;
+        color: #0f172a;
+    }
+    .map-popup .doc { color: #64748b; font-size: 13px; margin-bottom: 8px; }
+    .map-popup .badges { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
+    .map-popup .badge {
+        padding: 3px 10px;
+        border-radius: 50px;
+        font-size: 11px;
+        font-weight: 700;
+    }
+    .map-popup .badge.open { background: rgba(6,214,160,0.15); color: #059669; }
+    .map-popup .badge.closed { background: rgba(239,68,68,0.1); color: #dc2626; }
+    .map-popup .badge.wait { background: rgba(14,165,233,0.15); color: #0284c7; }
+    .map-popup .book-btn {
+        display: block;
+        width: 100%;
+        padding: 9px;
+        background: linear-gradient(135deg, var(--primary), var(--accent));
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-size: 13px;
+        font-weight: 700;
+        text-align: center;
+        text-decoration: none;
+        cursor: pointer;
+        transition: opacity 0.2s;
+    }
+    .map-popup .book-btn:hover { opacity: 0.9; }
+    .map-popup .book-btn.disabled {
+        background: #e2e8f0;
+        color: #94a3b8;
+        cursor: not-allowed;
+    }
 
-        /* POPUP STYLE */
-        .clinic-popup { min-width: 200px; }
-        .clinic-popup h3 { font-size: 16px; font-weight: 700; color: #0284c7; margin-bottom: 8px; }
-        .clinic-popup p { font-size: 13px; color: #555; margin-bottom: 4px; }
-        .clinic-popup .wait { font-size: 20px; font-weight: 700; color: #0ea5e9; margin: 8px 0; }
-        .clinic-popup a {
-            display: block;
-            padding: 8px;
-            background: #0ea5e9;
-            color: white;
-            border-radius: 8px;
-            text-align: center;
-            text-decoration: none;
-            font-weight: 700;
-            font-size: 13px;
-            margin-top: 8px;
-        }
-        .clinic-popup a:hover { background: #0284c7; }
+    /* ── MOBILE ── */
+    @media (max-width: 768px) {
+        .map-layout { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+        .map-sidebar { height: 280px; border-right: none; border-bottom: 1px solid #e2e8f0; }
+        #map { height: 100%; min-height: 400px; }
+    }
+</style>
+{% endblock %}
 
-        /* FILTER BAR */
-        .filter-bar {
-            position: fixed;
-            top: 80px;
-            left: 20px;
-            z-index: 600;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-        .filter-btn {
-            padding: 8px 16px;
-            border-radius: 50px;
-            border: none;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            transition: all 0.2s;
-            background: white;
-            color: #555;
-        }
-        .filter-btn.active { background: #0ea5e9; color: white; }
-        .filter-btn:hover { transform: scale(1.05); }
-
-        /* Loading */
-        .loading-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(255,255,255,0.9);
-            z-index: 2000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            gap: 15px;
-        }
-        .loading-overlay.hidden { display: none; }
-        .spinner {
-            width: 50px; height: 50px;
-            border: 4px solid #e2e8f0;
-            border-top-color: #0ea5e9;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .loading-text { font-size: 16px; font-weight: 600; color: #0284c7; }
-
-        @media (max-width: 768px) {
-            .sidebar { width: 100%; top: auto; bottom: 0; height: 50vh; }
-            .sidebar.hidden { transform: translateY(100%); }
-        }
-    </style>
-</head>
-<body>
-
-    <!-- LOADING -->
-    <div class="loading-overlay" id="loadingOverlay">
-        <div class="spinner"></div>
-        <div class="loading-text">🗺️ Loading Tabibak Map...</div>
-    </div>
-
-    <!-- NAVBAR -->
-    <nav>
-        <div class="logo">Tabibak طبيبك</div>
-        <div class="nav-links">
-            <a href="/clinics" class="nav-link nav-link-blue">📋 List View</a>
-            <a href="/" class="nav-link nav-link-blue">🏠 Home</a>
+{% block content %}
+<div class="map-layout">
+    <!-- SIDEBAR -->
+    <aside class="map-sidebar">
+        <div class="map-sidebar-header">
+            <h2>🗺️ Clinic Map</h2>
+            <p>{{ clinics|length }} clinics near you</p>
         </div>
-    </nav>
-
-    <!-- FILTER BAR -->
-    <div class="filter-bar">
-        <button class="filter-btn active" onclick="filterMap('all')">🏥 All</button>
-        <button class="filter-btn" onclick="filterMap('open')">🟢 Open</button>
-        <button class="filter-btn" onclick="filterMap('closed')">🔴 Closed</button>
-    </div>
+        <div class="map-search-bar">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="clinicSearch" placeholder="Search clinics or doctors…">
+        </div>
+        <div class="clinic-list" id="clinicList">
+            {% for clinic in clinics %}
+            <div class="clinic-item" data-id="{{ clinic.id }}"
+                 data-name="{{ clinic.name|lower }}"
+                 data-doctor="{{ clinic.doctor|lower }}"
+                 onclick="focusClinic({{ clinic.id }}, {{ clinic.latitude or 30.0444 }}, {{ clinic.longitude or 31.2357 }})">
+                <div class="clinic-item-icon {{ 'open' if clinic.is_open else 'closed' }}">
+                    {{ '🏥' if clinic.is_open else '🔒' }}
+                </div>
+                <div class="clinic-item-info">
+                    <div class="clinic-item-name">{{ clinic.name }}</div>
+                    <div class="clinic-item-meta">{{ clinic.doctor }} · {{ clinic.specialty }}</div>
+                    <div class="clinic-item-badges">
+                        {% if clinic.is_open %}
+                            <span class="pill pill-green">Open</span>
+                            <span class="pill pill-blue">{{ clinic.patients_waiting * clinic.minutes_per_patient }} min wait</span>
+                            <span class="pill pill-orange">{{ clinic.patients_waiting }} waiting</span>
+                        {% else %}
+                            <span class="pill pill-red">Closed</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </aside>
 
     <!-- MAP -->
     <div id="map"></div>
+</div>
+{% endblock %}
 
-    <!-- SIDEBAR -->
-    <div class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <h2>🏥 Nearby Clinics</h2>
-            <button class="sidebar-toggle" onclick="toggleSidebar()">✕ Hide</button>
-        </div>
-        <div class="clinic-list" id="clinicList"></div>
-    </div>
+{% block extra_scripts %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    // ── DATA FROM FLASK ──
+    const clinicsData = {{ clinics | tojson }};
 
-    <!-- MAP CONTROLS -->
-    <div class="map-controls">
-        <button class="map-control-btn btn-locate" onclick="locateUser()">📍 Find Me</button>
-        <button class="map-control-btn btn-toggle" onclick="toggleSidebar()">🏥 Clinics List</button>
-    </div>
+    // ── INIT MAP ──
+    const defaultLat = 30.0444, defaultLng = 31.2357;
+    const map = L.map('map').setView([defaultLat, defaultLng], 12);
 
-    <script>
-        // ── CLINIC DATA FROM FLASK ──
-        const clinics = {{ clinics | tojson }};
-        let map, userMarker, userLat, userLng;
-        let clinicMarkers = [];
-        let currentFilter = 'all';
-        let sidebarVisible = true;
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        maxZoom: 19
+    }).addTo(map);
 
-        // ── INIT MAP ──
-        function initMap() {
-            map = L.map('map', {
-                center: [30.0444, 31.2357],
-                zoom: 12,
-                zoomControl: true
-            });
+    // ── CUSTOM ICONS ──
+    function makeIcon(open) {
+        return L.divIcon({
+            className: '',
+            html: `<div style="
+                width:36px;height:36px;
+                background:${open ? 'linear-gradient(135deg,#0ea5e9,#06d6a0)' : 'linear-gradient(135deg,#ef4444,#b91c1c)'};
+                border-radius:50% 50% 50% 0;
+                transform:rotate(-45deg);
+                box-shadow:0 4px 15px rgba(0,0,0,0.25);
+                border:3px solid white;
+            "></div>`,
+            iconSize: [36, 36],
+            iconAnchor: [18, 36],
+            popupAnchor: [0, -38]
+        });
+    }
 
-            // Beautiful map tiles
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-                attribution: '© OpenStreetMap © CartoDB',
-                subdomains: 'abcd',
-                maxZoom: 20
-            }).addTo(map);
+    // ── BUILD MARKERS ──
+    const markers = {};
+    const bounds = [];
 
-            // Add clinic markers
-            addClinicMarkers();
+    clinicsData.forEach(clinic => {
+        const lat = clinic.latitude || defaultLat;
+        const lng = clinic.longitude || defaultLng;
+        bounds.push([lat, lng]);
 
-            // Hide loading
-            document.getElementById('loadingOverlay').classList.add('hidden');
+        const waitMin = (clinic.patients_waiting || 0) * (clinic.minutes_per_patient || 15);
+        const isOpen = clinic.is_open;
 
-            // Auto-locate
-            locateUser();
-        }
+        const popup = L.popup({ maxWidth: 260 }).setContent(`
+            <div class="map-popup">
+                <h3>${clinic.name}</h3>
+                <div class="doc">👨‍⚕️ ${clinic.doctor} · ${clinic.specialty || ''}</div>
+                <div class="badges">
+                    <span class="badge ${isOpen ? 'open' : 'closed'}">${isOpen ? '🟢 Open' : '🔴 Closed'}</span>
+                    ${isOpen ? `<span class="badge wait">⏱ ${waitMin} min wait</span>` : ''}
+                    ${isOpen ? `<span class="badge wait">👥 ${clinic.patients_waiting} waiting</span>` : ''}
+                </div>
+                ${clinic.address ? `<div style="font-size:12px;color:#64748b;margin-bottom:10px;">📍 ${clinic.address}</div>` : ''}
+                ${isOpen
+                    ? `<a href="/book/${clinic.id}" class="book-btn">Book Now →</a>`
+                    : `<span class="book-btn disabled">Clinic is Closed</span>`
+                }
+            </div>
+        `);
 
-        // ── CUSTOM MARKER ICONS ──
-        function createClinicIcon(isOpen) {
-            return L.divIcon({
-                html: `<div style="
-                    background: ${isOpen ? '#0ea5e9' : '#94a3b8'};
-                    border: 3px solid white;
-                    border-radius: 50% 50% 50% 0;
-                    width: 36px; height: 36px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    font-size: 16px;
-                    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-                    transform: rotate(-45deg);
-                    cursor: pointer;
-                "><span style="transform: rotate(45deg);">🏥</span></div>`,
-                className: '',
-                iconSize: [36, 36],
-                iconAnchor: [18, 36],
-                popupAnchor: [0, -36]
-            });
-        }
+        const marker = L.marker([lat, lng], { icon: makeIcon(isOpen) })
+            .addTo(map)
+            .bindPopup(popup);
 
-        function createUserIcon() {
-            return L.divIcon({
-                html: `<div style="
-                    background: #f72585;
-                    border: 3px solid white;
-                    border-radius: 50%;
-                    width: 20px; height: 20px;
-                    box-shadow: 0 0 0 8px rgba(247,37,133,0.2);
-                    animation: pulse 2s infinite;
-                "></div>`,
-                className: '',
-                iconSize: [20, 20],
-                iconAnchor: [10, 10]
-            });
-        }
+        markers[clinic.id] = { marker, lat, lng };
+    });
 
-        // ── ADD CLINIC MARKERS ──
-        function addClinicMarkers() {
-            const listEl = document.getElementById('clinicList');
-            listEl.innerHTML = '';
-            clinicMarkers = [];
+    // Fit map to all markers
+    if (bounds.length > 0) {
+        map.fitBounds(bounds, { padding: [40, 40] });
+    }
 
-            clinics.forEach((clinic, index) => {
-                const lat = clinic[7] || 30.0444;
-                const lng = clinic[8] || 31.2357;
-                const isOpen = clinic[6] === 1;
-                const waitTime = clinic[4] * clinic[5];
+    // ── FOCUS CLINIC FROM SIDEBAR ──
+    function focusClinic(id, lat, lng) {
+        // Highlight sidebar item
+        document.querySelectorAll('.clinic-item').forEach(el => el.classList.remove('active'));
+        const item = document.querySelector(`.clinic-item[data-id="${id}"]`);
+        if (item) item.classList.add('active');
 
-                // Skip if filtered out
-                if (currentFilter === 'open' && !isOpen) return;
-                if (currentFilter === 'closed' && isOpen) return;
+        // Pan map and open popup
+        map.setView([lat, lng], 15, { animate: true });
+        if (markers[id]) markers[id].marker.openPopup();
+    }
 
-                // Create marker
-                const marker = L.marker([lat, lng], { icon: createClinicIcon(isOpen) })
-                    .addTo(map)
-                    .bindPopup(`
-                        <div class="clinic-popup">
-                            <h3>${clinic[1]}</h3>
-                            <p>👨‍⚕️ ${clinic[2]}</p>
-                            <p>🩺 ${clinic[3]}</p>
-                            <p>👥 ${clinic[4]} patients waiting</p>
-                            <div class="wait">${waitTime} min wait</div>
-                            ${isOpen ? `<a href="/book/${clinic[0]}">📅 Book Now</a>` : '<p style="color:#dc2626; font-weight:700;">🔴 Clinic Closed</p>'}
-                        </div>
-                    `, { maxWidth: 250 });
+    // Clicking a marker highlights sidebar item
+    Object.entries(markers).forEach(([id, { marker }]) => {
+        marker.on('click', () => {
+            document.querySelectorAll('.clinic-item').forEach(el => el.classList.remove('active'));
+            const item = document.querySelector(`.clinic-item[data-id="${id}"]`);
+            if (item) {
+                item.classList.add('active');
+                item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        });
+    });
 
-                clinicMarkers.push({ marker, clinic, index });
+    // ── SEARCH ──
+    document.getElementById('clinicSearch').addEventListener('input', function() {
+        const q = this.value.toLowerCase().trim();
+        document.querySelectorAll('.clinic-item').forEach(el => {
+            const name = el.dataset.name || '';
+            const doctor = el.dataset.doctor || '';
+            el.style.display = (!q || name.includes(q) || doctor.includes(q)) ? '' : 'none';
+        });
+    });
 
-                // Add to sidebar list
-                const item = document.createElement('div');
-                item.className = 'clinic-item';
-                item.id = `clinic-item-${index}`;
-                item.innerHTML = `
-                    <div class="clinic-item-top">
-                        <div class="clinic-item-name">${clinic[1]}</div>
-                        <span class="clinic-item-status ${isOpen ? 'status-open' : 'status-closed'}">
-                            ${isOpen ? '🟢 Open' : '🔴 Closed'}
-                        </span>
-                    </div>
-                    <div class="clinic-item-info">👨‍⚕️ ${clinic[2]} • 🩺 ${clinic[3]}</div>
-                    <div class="clinic-item-info">👥 ${clinic[4]} patients waiting</div>
-                    <div class="clinic-item-wait">${waitTime} min</div>
-                    <div class="clinic-item-distance" id="dist-${index}">📍 Calculating...</div>
-                    ${isOpen ? `<a href="/book/${clinic[0]}" class="book-btn-small">📅 Book Now</a>` : ''}
-                `;
-
-                item.addEventListener('click', () => {
-                    map.setView([lat, lng], 16, { animate: true });
-                    marker.openPopup();
-                    document.querySelectorAll('.clinic-item').forEach(el => el.classList.remove('active'));
-                    item.classList.add('active');
-                });
-
-                listEl.appendChild(item);
-            });
-        }
-
-        // ── LOCATE USER ──
-        function locateUser() {
-            if (!navigator.geolocation) return;
-
-            navigator.geolocation.getCurrentPosition(pos => {
-                userLat = pos.coords.latitude;
-                userLng = pos.coords.longitude;
-
-                if (userMarker) map.removeLayer(userMarker);
-                userMarker = L.marker([userLat, userLng], { icon: createUserIcon() })
-                    .addTo(map)
-                    .bindPopup('<b>📍 You are here!</b>')
-                    .openPopup();
-
-                map.setView([userLat, userLng], 14, { animate: true });
-
-                // Calculate distances
-                clinicMarkers.forEach(({ clinic, index }) => {
-                    const lat = clinic[7] || 30.0444;
-                    const lng = clinic[8] || 31.2357;
-                    const dist = getDistance(userLat, userLng, lat, lng);
-                    const distEl = document.getElementById(`dist-${index}`);
-                    if (distEl) {
-                        distEl.textContent = dist < 1
-                            ? `📍 ${Math.round(dist * 1000)}m away`
-                            : `📍 ${dist.toFixed(1)}km away`;
-                    }
-                });
-
-                // Sort sidebar by distance
-                sortByDistance();
-            });
-        }
-
-        // ── SORT BY DISTANCE ──
-        function sortByDistance() {
-            if (!userLat) return;
-            const list = document.getElementById('clinicList');
-            const items = Array.from(list.children);
-            items.sort((a, b) => {
-                const indexA = parseInt(a.id.split('-')[2]);
-                const indexB = parseInt(b.id.split('-')[2]);
-                const clinicA = clinics[indexA];
-                const clinicB = clinics[indexB];
-                const distA = getDistance(userLat, userLng, clinicA[7] || 30.0444, clinicA[8] || 31.2357);
-                const distB = getDistance(userLat, userLng, clinicB[7] || 30.0444, clinicB[8] || 31.2357);
-                return distA - distB;
-            });
-            items.forEach(item => list.appendChild(item));
-        }
-
-        // ── FILTER MAP ──
-        function filterMap(filter) {
-            currentFilter = filter;
-            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
-
-            // Remove all markers
-            clinicMarkers.forEach(({ marker }) => map.removeLayer(marker));
-
-            // Re-add with filter
-            addClinicMarkers();
-        }
-
-        // ── TOGGLE SIDEBAR ──
-        function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            sidebarVisible = !sidebarVisible;
-            sidebar.classList.toggle('hidden', !sidebarVisible);
-        }
-
-        // ── DISTANCE CALC ──
-        function getDistance(lat1, lng1, lat2, lng2) {
-            const R = 6371;
-            const dLat = (lat2 - lat1) * Math.PI / 180;
-            const dLng = (lng2 - lng1) * Math.PI / 180;
-            const a = Math.sin(dLat/2)**2 + Math.cos(lat1 * Math.PI/180) * Math.cos(lat2 * Math.PI/180) * Math.sin(dLng/2)**2;
-            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-        }
-
-        // ── START ──
-        initMap();
-    </script>
-
-</body>
-</html>
+    // ── USER LOCATION ──
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(pos => {
+            const { latitude, longitude } = pos.coords;
+            L.circleMarker([latitude, longitude], {
+                radius: 10,
+                fillColor: '#0ea5e9',
+                color: 'white',
+                weight: 3,
+                fillOpacity: 0.9
+            }).addTo(map).bindPopup('📍 You are here').openPopup();
+        }, () => {});
+    }
+</script>
+{% endblock %}
