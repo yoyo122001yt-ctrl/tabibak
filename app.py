@@ -102,6 +102,11 @@ def login_required(role=None):
 def home():
     return render_template("index.html")
 
+@app.route("/map")
+def map_view():
+    data = get_clinics()
+    return render_template("map.html", clinics=data)
+
 @app.route("/clinics")
 def clinics():
     data = get_clinics()
