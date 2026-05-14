@@ -229,28 +229,6 @@
             </form>
         </div>
         {% endif %}
-        <!-- Show Documents -->
-        {% if documents %}
-        <div style="background: #dcfce7; border: 2px solid #16a34a; border-radius: 12px; padding: 12px 20px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
-            <span style="font-size: 20px;">✅</span>
-            <span style="color: #15803d; font-weight: 600; font-size: 14px;">Access Granted - You can view this patient's medical documents</span>
-        </div>
-        <div class="documents-grid">
-            {% for doc in documents %}
-            <div class="doc-card">
-                <img src="{{ url_for('static', filename='uploads/' ~ doc[2]) }}" alt="{{ doc[3] }}" onclick="openModal(this.src)" loading="lazy">
-                <p>{{ doc[3] }}</p>
-                <span>{{ doc[4] }}</span>
-            </div>
-            {% endfor %}
-        </div>
-        {% else %}
-        <div class="no-docs">
-            <div style="font-size:40px; margin-bottom:10px;">📂</div>
-            No medical documents uploaded by this patient yet.
-        </div>
-        {% endif %}
-        {% endif %}
     </div>
 
 </div>

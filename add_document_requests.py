@@ -23,7 +23,7 @@ cursor.execute("""
     )
 """)
 
-print("✅ Document access requests table created!")
+print("Document access requests table created!")
 
 conn.commit()
 conn.close()

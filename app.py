@@ -1061,10 +1061,26 @@ def init_db():
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
+
+    # Create document access requests table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS document_access_requests (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            doctor_id INTEGER NOT NULL,
+            patient_id INTEGER NOT NULL,
+            clinic_id INTEGER NOT NULL,
+            status TEXT DEFAULT 'pending',
+            requested_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            responded_at TIMESTAMP,
+            FOREIGN KEY (doctor_id) REFERENCES doctors(id),
+            FOREIGN KEY (patient_id) REFERENCES patients(id),
+            FOREIGN KEY (clinic_id) REFERENCES clinics(id)
+        )
+    """)
     
     conn.commit()
     conn.close()
-    print("✅ Database initialized successfully!")
+    print("Database initialized successfully!")
 
 # Run database initialization
 if not os.path.exists(DB_PATH):

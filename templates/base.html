@@ -14,6 +14,14 @@
     <!-- Translations -->
     <script src="{{ url_for('static', filename='translations.js') }}"></script>
     
+    <!-- PWA -->
+    <link rel="manifest" href="/static/manifest.json">
+    <meta name="theme-color" content="#0ea5e9">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Tabibak">
+    <link rel="apple-touch-icon" href="/static/icon-192.svg">
+    
     {% block extra_head %}{% endblock %}
 </head>
 <body class="{% block body_class %}{% endblock %}">
@@ -153,6 +161,40 @@
 
         // Initialize Lang
         setLang(currentLang);
+    </script>
+    
+    <!-- PWA Install Banner -->
+    <div id="installBtn" style="display:none; position:fixed; bottom:30px; left:50%; transform:translateX(-50%); z-index:9999; background:linear-gradient(135deg,#0ea5e9,#06d6a0); color:white; padding:14px 28px; border-radius:50px; box-shadow:0 8px 30px rgba(14,165,233,0.4); align-items:center; gap:10px; cursor:pointer; font-weight:700; font-size:15px;" onclick="installApp()">
+        📱 Install Tabibak App
+    </div>
+
+    <script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/static/service-worker.js')
+                .then(() => console.log('Tabibak PWA ready!'))
+                .catch(err => console.log('SW error:', err));
+        });
+    }
+
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', e => {
+        e.preventDefault();
+        deferredPrompt = e;
+        document.getElementById('installBtn').style.display = 'flex';
+    });
+
+    function installApp() {
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then(choice => {
+                if (choice.outcome === 'accepted') {
+                    document.getElementById('installBtn').style.display = 'none';
+                }
+                deferredPrompt = null;
+            });
+        }
+    }
     </script>
     
     {% block extra_scripts %}{% endblock %}
