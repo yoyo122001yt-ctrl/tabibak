@@ -1,0 +1,51 @@
+version: "3.9"
+
+services:
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      - SECRET_KEY=${SECRET_KEY:-tabibak_secret_123}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-tabibak_admin_2026}
+      - DB_ENGINE=postgres
+      - POSTGRES_HOST=db
+      - POSTGRES_DB=tabibak
+      - POSTGRES_USER=tabibak
+      - POSTGRES_PASSWORD=tabibak
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    volumes:
+      - uploads:/app/static/uploads
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_DB=tabibak
+      - POSTGRES_USER=tabibak
+      - POSTGRES_PASSWORD=tabibak
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tabibak"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+
+volumes:
+  pgdata:
+  redisdata:
+  uploads:

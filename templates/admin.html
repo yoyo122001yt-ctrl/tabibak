@@ -288,9 +288,9 @@
     <aside class="sidebar">
         <div class="brand">Tabibak <span>Admin</span></div>
         <nav class="nav-links">
-            <a href="{{ url_for('admin') }}">Dashboard</a>
+            <a href="{{ url_for('admin.dashboard') }}">Dashboard</a>
             <a href="/">← Public site</a>
-            <a href="{{ url_for('admin_logout') }}">Log out</a>
+            <a href="{{ url_for('admin.logout') }}">Log out</a>
         </nav>
     </aside>
 
@@ -385,7 +385,7 @@
         <div class="card">
             <h2>🔎 Find doctors</h2>
             <p class="card-sub">Search name, email, or clinic. Combine with status. Results apply to the table below only; pending inbox still shows every pending registration.</p>
-            <form class="filter-bar" method="get" action="{{ url_for('admin') }}">
+            <form class="filter-bar" method="get" action="{{ url_for('admin.dashboard') }}">
                 <label>Search
                     <input type="search" name="q" value="{{ filter_q }}" placeholder="Name, email, clinic…">
                 </label>
@@ -398,7 +398,7 @@
                 </label>
                 <button type="submit" class="btn btn-primary" style="padding:9px 18px;">Apply</button>
                 {% if filter_q or filter_status != 'all' %}
-                <a href="{{ url_for('admin') }}" class="btn btn-secondary" style="padding:9px 18px;">Clear</a>
+                <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary" style="padding:9px 18px;">Clear</a>
                 {% endif %}
             </form>
             {% if filter_q or filter_status != 'all' %}
@@ -409,7 +409,7 @@
         <div class="card">
             <h2>➕ Add doctor (pre-approved)</h2>
             <p class="card-sub">Creates a clinic and an approved doctor. Default map pin is Cairo if coordinates are blank.</p>
-            <form method="post" action="{{ url_for('admin_add_doctor') }}" autocomplete="off">
+            <form method="post" action="{{ url_for('admin.add_doctor') }}" autocomplete="off">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                 <input type="hidden" name="return_q" value="{{ filter_q }}">
                 <input type="hidden" name="return_status" value="{{ filter_status }}">
@@ -462,13 +462,13 @@
                 </div>
                 <span class="badge badge-pending">Pending</span>
                 <div class="action-btns">
-                    <form class="inline-form" method="post" action="{{ url_for('approve_doctor', doctor_id=doctor[0]) }}">
+                    <form class="inline-form" method="post" action="{{ url_for('admin.approve_doctor', doctor_id=doctor[0]) }}">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                         <input type="hidden" name="return_q" value="{{ filter_q }}">
                         <input type="hidden" name="return_status" value="{{ filter_status }}">
                         <button type="submit" class="btn-approve">Approve</button>
                     </form>
-                    <form class="inline-form" method="post" action="{{ url_for('reject_doctor', doctor_id=doctor[0]) }}" onsubmit="return confirm('Reject and delete this registration and clinic?');">
+                    <form class="inline-form" method="post" action="{{ url_for('admin.reject_doctor', doctor_id=doctor[0]) }}" onsubmit="return confirm('Reject and delete this registration and clinic?');">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                         <input type="hidden" name="return_q" value="{{ filter_q }}">
                         <input type="hidden" name="return_status" value="{{ filter_status }}">
@@ -516,20 +516,20 @@
                                 <td>
                                     <div class="action-btns">
                                         {% if doctor[8] == 'pending' %}
-                                        <form class="inline-form" method="post" action="{{ url_for('approve_doctor', doctor_id=doctor[0]) }}">
+                                        <form class="inline-form" method="post" action="{{ url_for('admin.approve_doctor', doctor_id=doctor[0]) }}">
                                             <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                                             <input type="hidden" name="return_q" value="{{ filter_q }}">
                                             <input type="hidden" name="return_status" value="{{ filter_status }}">
                                             <button type="submit" class="btn-approve">Approve</button>
                                         </form>
-                                        <form class="inline-form" method="post" action="{{ url_for('reject_doctor', doctor_id=doctor[0]) }}" onsubmit="return confirm('Reject and delete this registration?');">
+                                        <form class="inline-form" method="post" action="{{ url_for('admin.reject_doctor', doctor_id=doctor[0]) }}" onsubmit="return confirm('Reject and delete this registration?');">
                                             <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                                             <input type="hidden" name="return_q" value="{{ filter_q }}">
                                             <input type="hidden" name="return_status" value="{{ filter_status }}">
                                             <button type="submit" class="btn-reject">Reject</button>
                                         </form>
                                         {% endif %}
-                                        <form class="inline-form" method="post" action="{{ url_for('admin_delete_doctor', doctor_id=doctor[0]) }}" onsubmit="return confirm('Delete this doctor and clinic? Bookings and reviews for this clinic will be removed.');">
+                                        <form class="inline-form" method="post" action="{{ url_for('admin.delete_doctor', doctor_id=doctor[0]) }}" onsubmit="return confirm('Delete this doctor and clinic? Bookings and reviews for this clinic will be removed.');">
                                             <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                                             <input type="hidden" name="return_q" value="{{ filter_q }}">
                                             <input type="hidden" name="return_status" value="{{ filter_status }}">

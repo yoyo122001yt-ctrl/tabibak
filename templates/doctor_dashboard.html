@@ -162,13 +162,13 @@
             <h2>🏥 {{ clinic[1] }} — Current Status</h2>
             {% if clinic[6] == 1 %}
                 <div class="status-badge status-open">🟢 Clinic is Open</div><br>
-                <form class="inline-form" method="post" action="{{ url_for('doctor_leave') }}">
+                <form class="inline-form" method="post" action="{{ url_for('doctor.leave') }}">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                     <button type="submit" class="btn-submit btn-red">🔴 Mark as Closed</button>
                 </form>
             {% else %}
                 <div class="status-badge status-closed">🔴 Clinic is Closed</div><br>
-                <form class="inline-form" method="post" action="{{ url_for('doctor_arrive') }}">
+                <form class="inline-form" method="post" action="{{ url_for('doctor.arrive') }}">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                     <button type="submit" class="btn-submit btn-green">🟢 Mark as Open</button>
                 </form>
@@ -179,7 +179,7 @@
         <div class="card reveal reveal-delay-2">
             <h2>🔢 Queue Management</h2>
             <p style="color:var(--text-muted); margin-bottom:24px;">Click the button below when the next patient enters your room. This updates the live queue for everyone waiting.</p>
-            <form class="inline-form" method="post" action="{{ url_for('next_patient') }}">
+            <form class="inline-form" method="post" action="{{ url_for('doctor.next_patient') }}">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                 <button type="submit" class="btn-submit btn-blue">✅ Call Next Patient →</button>
             </form>
