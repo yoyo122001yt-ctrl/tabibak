@@ -8,6 +8,7 @@ from backend.routes.patient import patient_bp
 from backend.routes.doctor import doctor_bp
 from backend.routes.admin import admin_bp
 from backend.routes.api import api_bp
+from backend.routes.api_v1 import api_v1_bp
 
 
 def create_app():
@@ -28,5 +29,6 @@ def create_app():
     app.register_blueprint(doctor_bp)
     app.register_blueprint(admin_bp)
     app.register_blueprint(api_bp)
+    app.register_blueprint(api_v1_bp)
 
     return app

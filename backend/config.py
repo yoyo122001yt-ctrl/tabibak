@@ -21,6 +21,9 @@ class Config:
 
     REDIS_URL = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
 
+    JWT_SECRET = os.environ.get("JWT_SECRET", "tabibak_jwt_secret_2026")
+    JWT_EXPIRY_HOURS = int(os.environ.get("JWT_EXPIRY_HOURS", "24"))
+
     @classmethod
     def get_db_url(cls):
         if cls.DB_ENGINE == "postgres":
